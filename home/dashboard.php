@@ -183,7 +183,8 @@ foreach ($movimentos_ultimos_dias as $movimento) {
 
             const url = "../api/get-plate.php";
             $.post(url, data, function(response) {
-                const responseData = JSON.parse(response);
+                
+                const responseData = response
                 if (responseData.success) {
                     feedback.innerHTML = `<span class="text-success">Resultado para: <b>${placa}</b></span>`;
                     // Aqui você pode exibir os resultados em cards, por exemplo
