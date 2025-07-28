@@ -12,7 +12,7 @@ try {
         $plate =  $_POST['plate'] ?? '';
         echo json_encode([
             "success" => true,
-            "data" =>    $lancamentos
+            "data" =>    $_POST
         ]);
         exit;
 
