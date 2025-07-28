@@ -143,6 +143,23 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
                     </div>
                 </div>
 
+                <!-- Modal para Resultados da Busca por Placa -->
+                <div class="modal fade" id="searchResultsModal" tabindex="-1" aria-labelledby="searchResultsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="searchResultsModalLabel">Resultados da Busca por Placa</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body" id="searchResultsBody">
+                                <!-- A tabela de resultados da busca será injetada aqui -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
