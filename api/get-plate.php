@@ -1,6 +1,6 @@
 <?php
 require_once '../includes/db.php';
-
+require_once '../includes/dao/MovimentVacanciesDAO.php';
 header('Content-Type: application/json');
 
 
@@ -10,6 +10,7 @@ try {
     if (isset($_POST['user'])) {
         $userId = $_POST['user'];
         $plate =  $_POST['plate'] ?? '';
+        $movimentVacanciesDAO =  new MovimentVacanciesDAO();
         $lancamentos = $movimentVacanciesDAO->getLancamentosUnicosPorPlacaEUsuario($plate, $userId);
         echo json_encode([
             "success" => true,
