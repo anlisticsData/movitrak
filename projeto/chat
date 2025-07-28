@@ -1,0 +1,363 @@
+
+curl -X POST http://localhost:8245/movitrack.app/api/login.php   -d "login=use@a.com"   -d "password=1"
+
+
+curl -X POST http://localhost:8245/movitrack.app/api/upload_moviment \
+  -H "Authorization: Bearer c26d202da0154a11d291e70211ba6645cce6158412aaf37cf6c5d6a29e119213" \
+  -F "fk_vacancie=2" \
+  -F "fk_camera=1" \
+  -F "state=1" \
+  -F "placa=XXSAS" \
+  -F "file=@/home/edi/screenshorts_XX/screenshot_1_20250711-185728.jpg"
+
+
+  curl -X POST http://localhost:8245/movitrack.app/api/upload_moviment \
+  -H "Authorization: Bearer c26d202da0154a11d291e70211ba6645cce6158412aaf37cf6c5d6a29e119213" \
+  -F "fk_vacancie=1" \
+  -F "fk_camera=1" \
+  -F "state=1" \
+  -F "placa=1CDS3345" \
+  -F "file=@/home/edi/screenshorts/screenshot_00001_20250714-155113.jpg"
+
+  
+
+
+
+crie d todas as tabelas um crud completo ,
+ onde o usuario criar uma conta e acessa ao logar e 
+ gerado um token de session para as outras telas , dashbord , perfil, 
+ cameras lista de cameras , vagas lista de vagas , pesquisa de movimentos 
+ com paginação e escript para gravar os movimetos da vagas passando a 
+ vaga e o a camera id , a placa e o arquivo e salvar .  
+ um outro para baixar  quando logar as cameras e vagas 
+ disponiveis pelo usuario logado, gere uma aplicaço em php puro com 
+ o modelo me dados Mysql  DAO , com porta 8206 e localhost=127.0.0.1 
+ user =root e passw=root charset=utf8 tudo e lido do arquivo .env na raiz do projeto
+ e as paginas sao protegidas pega regra de admin e user , gere o html+css javascript
+ de todas as paginas com as validação de front e backend , e ao logar manter a 
+ sessao sempre ativa entre a paginas ate o deslogar crie as telas responsiva 
+ e monitas. bootstrap 
+    
+
+
+
+ criar a  tela de dashbord com um menu de acesso para as telas de perfil , cameras vagas e home uma opçao para sair a tela de dashbord tem uma seção de indicodores de frequencia em grafico de barras com base mo movimento do ultimos dias total de vagas ocupadas e livre uma secao de movimentos recentes  que mostra um card com o id da vaga placa em destaque uma image do carro ao click ampliar a imagen e a opção de ver os  movimentos da vaga ao criar em ver historicos um  , um secao de movimento do dia em forma de lista com o id da vagas e a placa e a entrada na vaga   responsivel com animação  com graficos 
+
+ 
+
+
+
+
+
+
+<?php
+
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+require_once '../includes/dao/MovimentVacanciesDAO.php';
+
+// Iniciar a sessão e verificar se o usuário está autenticado
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Criar a instância do DAO
+$movimentVacanciesDAO = new MovimentVacanciesDAO($pdo);
+
+// Buscar dados para o gráfico e as seções
+$movimentos_ultimos_dias = $movimentVacanciesDAO->getMovimentosUltimosDias(); // Função que busca dados para o gráfico
+$movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentes(); // Função que busca os movimentos mais recentes
+//$movimentos_do_dia = $movimentVacanciesDAO->getMovimentosDoDia(); // Função que busca os movimentos do dia
+
+
+$movimentos_do_dia = $movimentVacanciesDAO->getResumoMovimentosDoDia();
+
+
+ 
+// Buscar o status das vagas (ocupadas e livres)
+$vagas_status = $movimentVacanciesDAO->getVagasStatus(); // Retorna [ocupadas => x, livres => y]
+
+// Buscar a vaga com o maior tempo de permanência
+$vaga_maior_tempo = $movimentVacanciesDAO->getVagaMaiorTempo(); // Retorna [vaga_id, tempo_permanencia]
+
+// Buscar a vaga com maior frequência de movimentações
+$vaga_maior_frequencia = $movimentVacanciesDAO->getVagaMaiorFrequencia(); // Retorna [vaga_id, frequencia]
+
+// Agora, você precisa extrair os dias e movimentos para passar para o gráfico
+$movimentos_dias = [];
+$movimentos_contagem = [];
+
+foreach ($movimentos_ultimos_dias as $movimento) {
+    // Aqui você extrai a data e a contagem de movimentos
+    $dia = date('D', strtotime($movimento['created_at']));  // 'D' traz o nome abreviado do dia da semana (Seg, Ter, etc.)
+    if (!in_array($dia, $movimentos_dias)) {
+        $movimentos_dias[] = $dia;  // Adiciona o dia
+        $movimentos_contagem[] = 1;  // Inicia a contagem de movimentos para esse dia
+    } else {
+        $index = array_search($dia, $movimentos_dias);  // Encontra o índice do dia
+        $movimentos_contagem[$index]++;  // Incrementa a contagem
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+
+    <style>
+        main {
+            padding-bottom: 60px;
+            /* Espaço extra no final da área principal */
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container-fluid">
+        <!-- Inclui o menu superior -->
+        <?php include('../includes/components/header.php'); ?>
+
+        <div class="row">
+            <!-- Inclui a sidebar -->
+            <?php include('../includes/components/sidebar.php'); ?>
+
+            <!-- Conteúdo principal do Dashboard -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+                <h2>Dashboard</h2>
+                <div class="row mt-3">
+                    <!-- Indicadores de Frequência -->
+                    <div class="col-md-6">
+                        <h4>Indicadores de Frequência</h4>
+                        <canvas id="frequencyChart"></canvas>
+                    </div>
+
+                    <!-- Indicadores de vagas -->
+                    <div class="col-md-6">
+                        <h4>Status das Vagas</h4>
+                        <div class="alert alert-info">
+                            <strong>Vagas Ocupadas:</strong> <?php echo $vagas_status['ocupadas']; ?>
+                        </div>
+                        <div class="alert alert-success">
+                            <strong>Vagas Livres:</strong> <?php echo $vagas_status['livres']; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vaga com Maior Frequência -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h4>Vaga com Maior Frequência</h4>
+                        <?php
+                        if ($vaga_maior_frequencia !== null && is_array($vaga_maior_frequencia)) {
+                            echo "<div class='alert alert-warning'>";
+                            echo "<strong>ID da Vaga:</strong> " . $vaga_maior_frequencia['fk_vacancie'] . "<br>";
+                            echo "<strong>Movimentos Registrados:</strong> " . $vaga_maior_frequencia['frequencia'] . " movimentos";
+                            echo "</div>";
+                        } else {
+                            echo "<div class='alert alert-danger'>Não foi possível identificar a vaga com maior frequência.</div>";
+                        }
+                        ?>
+                    </div>
+                </div>
+
+                <!-- Vaga com Maior Tempo de Permanência -->
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <h4>Vaga com Maior Tempo de Permanência</h4>
+                        <?php
+                        if ($vaga_maior_tempo !== null && is_array($vaga_maior_tempo)) {
+                            echo "<div class='alert alert-warning'>";
+                            echo "<strong>ID da Vaga:</strong> " . $vaga_maior_tempo['fk_vacancie'] . "<br>";
+                            echo "<strong>Tempo de Permanência:</strong> " . $vaga_maior_tempo['tempo_permanencia'] . " horas";
+                            echo "</div>";
+                        } else {
+                            echo "<div class='alert alert-danger'>Não há vagas ocupadas no momento ou a consulta não retornou dados válidos.</div>";
+                        }
+                        ?>
+                    </div>
+                </div>
+
+                <!-- Movimentos Recentes -->
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <h4>Movimentos Recentes</h4>
+                        <div class="card-deck">
+                            <?php foreach ($movimentos_recentes as $movimento) : ?>
+                                <div class="card mb-3" style="max-width: 300px;">
+
+                                    <!-- Exibe imagem do movimento -->
+                                    <?php if (!empty($movimento['file_path'])) : ?>
+                                        <img
+                                            src="../<?php echo htmlspecialchars($movimento['file_path']); ?>"
+                                            class="card-img-top"
+                                            alt="Imagem do movimento"
+                                            style="height: 180px; object-fit: cover;">
+                                    <?php else: ?>
+                                        <img
+                                            src="<?php echo $movimento['fk_vacancie']; ?>"
+                                            class="card-img-top"
+                                            alt="Sem imagem"
+                                            style="height: 180px; object-fit: cover;">
+                                    <?php endif; ?>
+
+                                    <div class="card-body">
+                                        <h5 class="card-title">ID da Vaga: <?php echo $movimento['fk_vacancie']; ?></h5>
+                                        <p class="card-text">Placa: <?php echo $movimento['placa'] ?? 'N/A'; ?></p>
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                Registrado em: <?php echo converterParaSaoPaulo(date('d/m/Y H:i', strtotime($movimento['created_at']))); ?>
+                                            </small>
+                                        </p>
+                                        <a href="../cameras/historical?id=<?php echo $movimento['fk_vacancie']; ?>" class="btn btn-primary mt-2">
+                                            Ver Histórico
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Movimentos do Dia (Agrupados por Vaga) -->
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <h4>Movimentos do Dia (Resumo por Vaga)</h4>
+
+                        <ul class="list-group">
+    <?php foreach ($movimentos_do_dia as $movimento): ?>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <strong><?php echo htmlspecialchars($movimento['vaga_name']); ?></strong>
+                <small class="text-muted">(<?php echo htmlspecialchars($movimento['camera_name']); ?>)</small>
+                <br>
+
+                <span>Última placa: 
+                    <strong>
+                        <?php echo !empty($movimento['ultima_placa']) ? htmlspecialchars($movimento['ultima_placa']) : 'N/A'; ?>
+                    </strong>
+                </span>
+                <br>
+
+                <?php if (!empty($movimento['ultima_data']) && strtotime($movimento['ultima_data']) !== false): ?>
+                    <small class="text-muted">
+                        Última atualização: 
+                        <?php echo date('d/m/Y H:i', strtotime($movimento['ultima_data'])); ?>
+                    </small>
+                <?php else: ?>
+                    <small class="text-muted text-danger">
+                        Sem movimentação registrada hoje
+                    </small>
+                <?php endif; ?>
+            </div>
+
+            <div>
+                <span class="badge badge-primary badge-pill">
+                    <?php echo $movimento['total_movimentos']; ?> movimentos
+                </span>
+                <a href="../cameras/historical?id=<?php echo $movimento['vaga_id']; ?>"
+                   class="btn btn-sm btn-outline-secondary ml-2">
+                    Ver Histórico
+                </a>
+            </div>
+        </li>
+    <?php endforeach; ?>
+</ul>
+
+
+                        <?php if (empty($movimentos_do_dia)): ?>
+                            <div class="alert alert-info mt-2">
+                                Nenhuma movimentação registrada hoje.
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+
+
+                <!-- Espaço extra no final da página -->
+                <div style="height: 80px;"></div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Gráfico de Frequência
+        var ctx = document.getElementById('frequencyChart').getContext('2d');
+        var frequencyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($movimentos_dias); ?>, // Dias
+                datasets: [{
+                    label: 'Movimentos por Dia',
+                    data: <?php echo json_encode($movimentos_contagem); ?>, // Contagem de movimentos
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+
+
+
+
+    <script>
+        showLoader(); // Mostra o loader quando a navegação entre páginas começar
+        // Função para mostrar o loader
+        function showLoader() {
+            document.getElementById('loader').style.display = 'flex';
+        }
+
+        // Função para esconder o loader após o carregamento da página
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        // Exibe o loader assim que a página começa a carregar
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                hideLoader(); // Esconde o loader após 5 segundos
+            }, 2000); // Espera 5000ms (5 segundos) antes de esconder o loader
+        });
+
+        // Exibe o loader ao carregar qualquer página
+        window.addEventListener('beforeunload', function() {
+
+        });
+    </script>
+
+
+
+</body>
+
+</html>

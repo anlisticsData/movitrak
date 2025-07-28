@@ -1,0 +1,27 @@
+/* No arquivo style.css ou dentro do <style> no HTML */
+body {
+    background-image: url('../images/empresa.jpg'); /* Caminho para a imagem */
+    background-size: cover;  /* A imagem vai cobrir toda a tela */
+    background-position: center; /* A imagem será centralizada */
+    background-attachment: fixed; /* A imagem ficará fixa quando a página for rolada */
+    
+    font-family: Arial, sans-serif; /* Fonte para a página */
+}
+
+.container {
+    margin-top: 50px; /* Ajuste o espaçamento conforme necessário */
+}
+
+h2 {
+    color: #000/* Cor branca para o título */
+}
+
+.form-control {
+    background-color: rgba(255, 255, 255, 0.8); /* Fundo transparente para campos de input */
+    border-radius: 5px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}

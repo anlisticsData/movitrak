@@ -1,0 +1,17 @@
+{
+    "name": "edi/movitrack.app",
+    "autoload": {
+        "psr-4": {
+            "Movitrack\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "EdilsonCsilva",
+            "email": "analiticsdataprojetos@gmail.com"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
