@@ -1,12 +1,15 @@
 <?php
+
+ echo json_encode(["error" => "Token não enviado","data"=> getallheaders()]);
+
+    exit;
+
 require_once '../includes/db.php';
 
 header('Content-Type: application/json');
 
 
-    echo json_encode(["error" => "Token não enviado","data"=>$headers]);
-
-    exit;
+   
 
 // ==== PEGAR TOKEN DO HEADER ====
 $headers = getallheaders();
