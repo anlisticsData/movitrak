@@ -14,9 +14,9 @@ class MovimentVacanciesDAO
 
 
 
-    public function getLancamentosUnicosPorPlacaEUsuario($placa, $userId)
-    {
-        $sql = "
+  public function getTodosMovimentosPorDia($placa, $userId, $data)
+{
+    $sql = "
         SELECT
             DATE(m.created_at) AS dia,
             m.id AS movimento_id,
@@ -28,24 +28,20 @@ class MovimentVacanciesDAO
             m.created_at
         FROM moviment_vacancies m
         INNER JOIN cameras c ON m.fk_camera = c.id
-        INNER JOIN (
-            SELECT DATE(m2.created_at) AS dia, MAX(m2.created_at) AS max_created
-            FROM moviment_vacancies m2
-            INNER JOIN cameras c2 ON m2.fk_camera = c2.id
-            WHERE m2.placa = :placa AND c2.fk_user = :user_id
-            GROUP BY dia
-        ) ult ON DATE(m.created_at) = ult.dia AND m.created_at = ult.max_created
-        WHERE m.placa = :placa AND c.fk_user = :user_id
+        WHERE m.placa = :placa
+          AND c.fk_user = :user_id
+          AND DATE(m.created_at) = :data
         ORDER BY m.created_at DESC
     ";
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(':placa', $placa, PDO::PARAM_STR);
-        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->execute();
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->bindValue(':placa', $placa, PDO::PARAM_STR);
+    $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+    $stmt->bindValue(':data', $data, PDO::PARAM_STR); // Ex: '2025-07-28'
+    $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 
 
