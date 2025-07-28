@@ -14,7 +14,7 @@ class MovimentVacanciesDAO
 
 
 
-  public function getTodosMovimentosPorDia($placa, $userId, $data)
+   public function getTodosMovimentosDoDiaAtual($placa, $userId)
 {
     $sql = "
         SELECT
@@ -30,18 +30,18 @@ class MovimentVacanciesDAO
         INNER JOIN cameras c ON m.fk_camera = c.id
         WHERE m.placa = :placa
           AND c.fk_user = :user_id
-          AND DATE(m.created_at) = :data
+          AND DATE(m.created_at) = CURDATE()  -- Filtra os movimentos de hoje
         ORDER BY m.created_at DESC
     ";
 
     $stmt = $this->pdo->prepare($sql);
     $stmt->bindValue(':placa', $placa, PDO::PARAM_STR);
     $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-    $stmt->bindValue(':data', $data, PDO::PARAM_STR); // Ex: '2025-07-28'
     $stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 
 
 
