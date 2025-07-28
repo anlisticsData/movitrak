@@ -6,10 +6,16 @@ header('Content-Type: application/json');
 
 
 try {
-     $lancamentos=[];
+    $lancamentos = [];
     if (isset($_POST['user'])) {
         $userId = $_POST['user'];
         $plate =  $_POST['plate'] ?? '';
+        echo json_encode([
+            "success" => true,
+            "data" =>    $lancamentos
+        ]);
+        exit;
+
         $lancamentos = $movimentVacanciesDAO->getLancamentosUnicosPorPlacaEUsuario($plate, $userId);
         echo json_encode([
             "success" => true,
