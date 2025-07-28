@@ -10,12 +10,6 @@ try {
     if (isset($_POST['user'])) {
         $userId = $_POST['user'];
         $plate =  $_POST['plate'] ?? '';
-        echo json_encode([
-            "success" => true,
-            "data" =>    $_POST
-        ]);
-        exit;
-
         $lancamentos = $movimentVacanciesDAO->getLancamentosUnicosPorPlacaEUsuario($plate, $userId);
         echo json_encode([
             "success" => true,
