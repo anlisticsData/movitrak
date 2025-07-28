@@ -302,7 +302,7 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                                     <h5 class="card-title">ID da Vaga: ${movimento.fk_vacancie}</h5>
                                     <p class="card-text">Placa: ${placaText}</p>
                                     <p class="card-text"><small class="text-muted">Registrado em: ${createdAtFormatted}</small></p>
-                                    <a href="../cameras/historical?id=${movimento.fk_vacancie}" class="btn btn-primary mt-2">Ver Histórico</a>
+                                    
                                 </div>
                             </div>
                         `;
