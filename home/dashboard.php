@@ -105,8 +105,6 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                                     id="buscarPlacaBtn"><i class="fas fa-search"></i> Buscar Placa</button>
                             </div>
                         </div>
-                        <!-- O feedback de busca será feito via toasts e modal, então este div pode ser removido ou mantido vazio -->
-                        <!-- <div id="placaBuscaFeedback" style="min-height:24px;" class="text-center"></div> -->
                     </div>
                 </div>
                 <!-- /FIM DO CAMPO DE BUSCA -->
@@ -177,16 +175,16 @@ foreach ($movimentos_ultimos_dias as $movimento) {
 
                 <!-- Novo Modal para Resultados da Busca de Placa -->
                 <div class="modal fade" id="searchResultsModal" tabindex="-1" aria-labelledby="searchResultsModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- Alterado para modal-lg para um único card -->
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="searchResultsModalLabel">Resultados da Busca por Placa</h5>
+                                <h5 class="modal-title" id="searchResultsModalLabel">Último Movimento da Placa</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <div class="modal-body" id="searchResultsBody">
-                                <!-- Os cards de resultados da busca serão injetados aqui -->
+                            <div class="modal-body d-flex justify-content-center" id="searchResultsBody">
+                                <!-- O card do último movimento da placa será injetado aqui -->
                             </div>
                         </div>
                     </div>
@@ -269,10 +267,11 @@ foreach ($movimentos_ultimos_dias as $movimento) {
             const placa = placaBuscaInput.value.trim().toUpperCase();
 
             if (!placa) {
-                showToast('Digite uma placa para buscar.', 'danger');
+                showToast('Por favor, digite uma placa para buscar.', 'danger');
                 return;
             }
 
+            // Exibe um toast de "Buscando..."
             showToast('Buscando placa...', 'info');
 
             const data = {
@@ -286,30 +285,31 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                 $('#searchResultsBody').empty();
 
                 if (response.success && response.data && response.data.length > 0) {
-                    showToast(`Resultados encontrados para a placa: <b>${placa}</b>`, 'success');
-                    let cardsHtml = '<div class="card-deck flex-wrap justify-content-center">';
-                    response.data.forEach(function(movimento) {
-                        const imageUrl = movimento.file_path ? `../${movimento.file_path}` : '../assets/img/no-image.png'; // Fallback image
-                        const placaText = movimento.placa ? movimento.placa : 'N/A';
-                        const createdAtFormatted = formatDateTime(movimento.created_at);
-                        const isOcupado = movimento.ocupado; // Assumindo que o campo 'ocupado' é retornado pela API
-                        const cardClass = isOcupado ? 'border-danger bg-light' : '';
+                    // Pega apenas o primeiro (mais recente) movimento
+                    const latestMovimento = response.data[0];
 
-                        cardsHtml += `
-                            <div class="card mb-3 ${cardClass}" style="max-width: 300px;">
-                                <img src="${imageUrl}" class="card-img-top visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem do movimento" style="height: 180px; object-fit: cover; cursor: pointer;">
-                                <div class="card-body">
-                                    <h5 class="card-title">ID da Vaga: ${movimento.fk_vacancie}</h5>
-                                    <p class="card-text">Placa: ${placaText}</p>
-                                    <p class="card-text"><small class="text-muted">Registrado em: ${createdAtFormatted}</small></p>
-                                    <a href="../cameras/historical?id=${movimento.fk_vacancie}" class="btn btn-primary mt-2">Ver Histórico</a>
-                                </div>
+                    showToast(`Último movimento para a placa <b>${placa}</b> encontrado.`, 'success');
+
+                    let cardHtml = '';
+                    const imageUrl = latestMovimento.file_path ? `../${latestMovimento.file_path}` : '../assets/img/no-image.png'; // Fallback image
+                    const placaText = latestMovimento.placa ? latestMovimento.placa : 'N/A';
+                    const createdAtFormatted = formatDateTime(latestMovimento.created_at);
+                    const isOcupado = latestMovimento.ocupado; // Assumindo que o campo 'ocupado' é retornado pela API
+                    const cardClass = isOcupado ? 'border-danger bg-light' : '';
+
+                    cardHtml += `
+                        <div class="card mb-3 ${cardClass}" style="width: 100%; max-width: 300px;">
+                            <img src="${imageUrl}" class="card-img-top visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem do movimento" style="height: 180px; object-fit: cover; cursor: pointer;">
+                            <div class="card-body">
+                                <h5 class="card-title">ID da Vaga: ${latestMovimento.fk_vacancie}</h5>
+                                <p class="card-text">Placa: ${placaText}</p>
+                                <p class="card-text"><small class="text-muted">Registrado em: ${createdAtFormatted}</small></p>
+                                <a href="../cameras/historical?id=${latestMovimento.fk_vacancie}" class="btn btn-primary mt-2">Ver Histórico Completo</a>
                             </div>
-                        `;
-                    });
-                    cardsHtml += '</div>';
-                    $('#searchResultsBody').html(cardsHtml);
-                    $('#searchResultsModal').modal('show'); // Abre o modal com os resultados
+                        </div>
+                    `;
+                    $('#searchResultsBody').html(cardHtml);
+                    $('#searchResultsModal').modal('show'); // Abre o modal com o resultado
                 } else {
                     showToast(`Placa <b>${placa}</b> não localizada ou sem movimentos recentes.`, 'danger');
                 }
