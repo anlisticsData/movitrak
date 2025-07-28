@@ -417,7 +417,7 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                                 </td>
                                 <td>${statusText}</td>
                                 <td>
-                                    <a href="../cameras/historical?id=${movimento.fk_vacancie}" class="btn btn-sm btn-info">Ver Histórico</a>
+                                    
                                 </td>
                             </tr>
                         `;
