@@ -3,6 +3,7 @@ require_once '../includes/db.php';
 require_once '../includes/functions.php';
 require_once '../includes/dao/MovimentVacanciesDAO.php';
 
+
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -10,7 +11,9 @@ if (!isset($_SESSION['user_id'])) {
 }
 $userId = $_SESSION['user_id'];
 
+
 $movimentVacanciesDAO = new MovimentVacanciesDAO($pdo);
+
 
 $movimentos_ultimos_dias = $movimentVacanciesDAO->getMovimentosUltimosDiasPorUsuario($userId);
 $movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($userId);
@@ -18,6 +21,7 @@ $movimentos_do_dia = $movimentVacanciesDAO->getResumoMovimentosDoDiaPorUsuario($
 $vagas_status = $movimentVacanciesDAO->getVagasStatusPorUsuario($userId);
 $vaga_maior_tempo = $movimentVacanciesDAO->getVagaMaiorTempoPorUsuario($userId);
 $vaga_maior_frequencia = $movimentVacanciesDAO->getVagaMaiorFrequenciaPorUsuario($userId);
+
 
 $movimentos_dias = [];
 $movimentos_contagem = [];
@@ -33,8 +37,10 @@ foreach ($movimentos_ultimos_dias as $movimento) {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="pt-br">
+
 
 <head>
     <meta charset="UTF-8">
@@ -47,6 +53,7 @@ foreach ($movimentos_ultimos_dias as $movimento) {
             padding-bottom: 60px;
         }
 
+
         #autoRefreshPanel {
             position: sticky;
             bottom: 70px;
@@ -54,11 +61,22 @@ foreach ($movimentos_ultimos_dias as $movimento) {
             background-color: #f8f9fa;
         }
 
+
         .card-img-top {
             cursor: pointer;
         }
+        /* Estilos para o container de toasts */
+        .toast-container {
+            position: fixed;
+            bottom: 80px; /* Ajuste para ficar acima do autoRefreshPanel, se houver */
+            right: 20px;
+            z-index: 1050; /* Garante que o toast fique acima de outros elementos */
+            display: flex;
+            flex-direction: column-reverse; /* Para que novos toasts apareçam acima dos antigos */
+        }
     </style>
 </head>
+
 
 <body>
     <div class="container-fluid">
@@ -67,6 +85,7 @@ foreach ($movimentos_ultimos_dias as $movimento) {
             <?php include('../includes/components/sidebar.php'); ?>
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
                 <h2>Dashboard</h2>
+
 
                 <!-- CAMPO DE BUSCA DE PLACA DESTACADO -->
                 <div class="row mt-4">
@@ -86,10 +105,12 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                                     id="buscarPlacaBtn"><i class="fas fa-search"></i> Buscar Placa</button>
                             </div>
                         </div>
-                        <div id="placaBuscaFeedback" style="min-height:24px;" class="text-center"></div>
+                        <!-- O feedback de busca será feito via toasts e modal, então este div pode ser removido ou mantido vazio -->
+                        <!-- <div id="placaBuscaFeedback" style="min-height:24px;" class="text-center"></div> -->
                     </div>
                 </div>
                 <!-- /FIM DO CAMPO DE BUSCA -->
+
 
                 <!-- MOVIMENTOS RECENTES COM MODAL NAS IMAGENS -->
                 <div class="row mt-3">
@@ -110,10 +131,11 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                                             alt="Imagem do movimento"
                                             style="height: 180px; object-fit: cover;">
                                     <?php else: ?>
+                                        <!-- Fallback para quando não há imagem. Use uma imagem padrão ou um placeholder. -->
                                         <img
-                                            src="<?php echo $movimento['fk_vacancie']; ?>"
+                                            src="../assets/img/no-image.png" <!-- Caminho para uma imagem de placeholder -->
                                             class="card-img-top visualizar-imagem"
-                                            data-imagem="<?php echo $movimento['fk_vacancie']; ?>"
+                                            data-imagem="../assets/img/no-image.png"
                                             alt="Sem imagem"
                                             style="height: 180px; object-fit: cover;">
                                     <?php endif; ?>
@@ -135,7 +157,8 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                     </div>
                 </div>
 
-                <!-- Modal de visualização de imagem -->
+
+                <!-- Modal de visualização de imagem (para cards de movimentos recentes e busca) -->
                 <div class="modal fade" id="imagemModal" tabindex="-1" aria-labelledby="imagemModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content">
@@ -152,74 +175,152 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                     </div>
                 </div>
 
+                <!-- Novo Modal para Resultados da Busca de Placa -->
+                <div class="modal fade" id="searchResultsModal" tabindex="-1" aria-labelledby="searchResultsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="searchResultsModalLabel">Resultados da Busca por Placa</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body" id="searchResultsBody">
+                                <!-- Os cards de resultados da busca serão injetados aqui -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container">
+        <!-- Toasts serão adicionados aqui dinamicamente -->
+    </div>
+
 
     <!-- SCRIPTS (jQuery, Bootstrap, Chart.js) -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script>
-        // Função para buscar a placa
-        const placaBuscaInput = document.getElementById('placaBuscaInput');
-        const buscarBtn = document.getElementById('buscarPlacaBtn');
-        const feedback = document.getElementById('placaBuscaFeedback');
 
-        buscarBtn.addEventListener('click', function() {
-            const placa = placaBuscaInput.value.trim().toUpperCase();
-            if (!placa) {
-                feedback.innerHTML = '<span class="text-danger">Digite uma placa para buscar.</span>';
+    <script>
+        // Função para exibir um toast
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                console.error("Toast container not found.");
                 return;
             }
 
-            feedback.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Buscando placa...</span>';
+            const toastHtml = `
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
+                    <div class="toast-header">
+                        <strong class="mr-auto text-${type}">${type === 'success' ? 'Sucesso' : (type === 'danger' ? 'Erro' : 'Informação')}</strong>
+                        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            const newToast = $(toastHtml);
+            $(toastContainer).prepend(newToast); // Adiciona o novo toast no topo
+            newToast.toast('show');
+            newToast.on('hidden.bs.toast', function () {
+                $(this).remove(); // Remove o toast do DOM após ser ocultado
+            });
+        }
+
+        // Função para formatar data e hora
+        function formatDateTime(dateTimeString) {
+            if (!dateTimeString) return 'N/A';
+            const date = new Date(dateTimeString);
+            if (isNaN(date.getTime())) return 'N/A'; // Verifica se a data é inválida
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Meses são 0-indexados
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+        // Event delegation para abrir o modal de visualização da imagem
+        // Isso permite que imagens adicionadas dinamicamente também abram o modal
+        $(document).on('click', '.visualizar-imagem', function() {
+            const imagemUrl = $(this).data('imagem');
+            $('#imagemModalImg').attr('src', imagemUrl);
+            $('#imagemModal').modal('show');
+        });
+
+        // Lógica de busca da placa
+        const placaBuscaInput = document.getElementById('placaBuscaInput');
+        const buscarBtn = document.getElementById('buscarPlacaBtn');
+
+        buscarBtn.addEventListener('click', function() {
+            const placa = placaBuscaInput.value.trim().toUpperCase();
+
+            if (!placa) {
+                showToast('Digite uma placa para buscar.', 'danger');
+                return;
+            }
+
+            showToast('Buscando placa...', 'info');
 
             const data = {
-                plate: placa, 
-                user: "<?php echo $userId;  ?>" 
+                plate: placa,
+                user: "<?php echo $userId; ?>"
             };
 
             const url = "../api/get-plate.php";
             $.post(url, data, function(response) {
-                
-                const responseData = response
-                if (responseData.success) {
-                    feedback.innerHTML = `<span class="text-success">Resultado para: <b>${placa}</b></span>`;
-                    // Aqui você pode exibir os resultados em cards, por exemplo
-                    let cardsHtml = '';
-                    responseData.data.forEach(function(movimento) {
+                // Limpa os resultados anteriores no corpo do modal de busca
+                $('#searchResultsBody').empty();
+
+                if (response.success && response.data && response.data.length > 0) {
+                    showToast(`Resultados encontrados para a placa: <b>${placa}</b>`, 'success');
+                    let cardsHtml = '<div class="card-deck flex-wrap justify-content-center">';
+                    response.data.forEach(function(movimento) {
+                        const imageUrl = movimento.file_path ? `../${movimento.file_path}` : '../assets/img/no-image.png'; // Fallback image
+                        const placaText = movimento.placa ? movimento.placa : 'N/A';
+                        const createdAtFormatted = formatDateTime(movimento.created_at);
+                        const isOcupado = movimento.ocupado; // Assumindo que o campo 'ocupado' é retornado pela API
+                        const cardClass = isOcupado ? 'border-danger bg-light' : '';
+
                         cardsHtml += `
-                            <div class="card mb-3" style="max-width: 300px;">
-                                <img src="../${movimento.file_path}" class="card-img-top visualizar-imagem" data-imagem="../${movimento.file_path}" alt="Imagem do movimento">
+                            <div class="card mb-3 ${cardClass}" style="max-width: 300px;">
+                                <img src="${imageUrl}" class="card-img-top visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem do movimento" style="height: 180px; object-fit: cover; cursor: pointer;">
                                 <div class="card-body">
                                     <h5 class="card-title">ID da Vaga: ${movimento.fk_vacancie}</h5>
-                                    <p class="card-text">Placa: ${movimento.placa}</p>
+                                    <p class="card-text">Placa: ${placaText}</p>
+                                    <p class="card-text"><small class="text-muted">Registrado em: ${createdAtFormatted}</small></p>
                                     <a href="../cameras/historical?id=${movimento.fk_vacancie}" class="btn btn-primary mt-2">Ver Histórico</a>
                                 </div>
                             </div>
                         `;
                     });
-                    feedback.innerHTML = cardsHtml;
+                    cardsHtml += '</div>';
+                    $('#searchResultsBody').html(cardsHtml);
+                    $('#searchResultsModal').modal('show'); // Abre o modal com os resultados
                 } else {
-                    feedback.innerHTML = `<span class="text-danger">${responseData.message}</span>`;
+                    showToast(`Placa <b>${placa}</b> não localizada ou sem movimentos recentes.`, 'danger');
                 }
-            });
-        });
-
-        // Função para abrir o modal de visualização da imagem
-        const imagemElements = document.querySelectorAll('.visualizar-imagem');
-        imagemElements.forEach(element => {
-            element.addEventListener('click', function() {
-                const imagemUrl = this.getAttribute('data-imagem');
-                const modalImg = document.getElementById('imagemModalImg');
-                modalImg.src = imagemUrl;
-                $('#imagemModal').modal('show');
+            }).fail(function() {
+                showToast('Erro ao comunicar com o servidor. Tente novamente.', 'danger');
             });
         });
     </script>
 
+
 </body>
+
 
 </html>
