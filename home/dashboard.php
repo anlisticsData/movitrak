@@ -250,7 +250,7 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
                                 <td>${placaText}</td>
                                 <td>${createdAtFormatted}</td>
                                 <td>
-                                    <img src="${imageUrl}" witdh="40px"  class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem">
+                                    <img src="${imageUrl}"   class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;">
                                 </td>
                                 <td></td>
                             </tr>
