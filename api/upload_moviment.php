@@ -5,15 +5,11 @@ header('Content-Type: application/json');
 
 // ==== PEGAR TOKEN DO HEADER ====
 $headers = getallheaders();
-print_r($headers);
-
-
-exit;
 $authHeader = $headers['Authorization'] ?? null;
 
 if (!$authHeader || !preg_match('/Bearer\s+(\S+)/', $authHeader, $matches)) {
     http_response_code(401);
-    echo json_encode(["error" => "Token não enviado"]);
+    echo json_encode(["error" => "Token não enviado","data"=>$headers]);
     exit;
 }
 
