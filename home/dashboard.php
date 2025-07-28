@@ -394,7 +394,7 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                                         <th>Placa</th>
                                         <th>Registrado em</th>
                                         <th>Imagem</th>
-                                        <th>Status</th>
+                                        
                                         <th>Ações</th>
                                     </tr>
                                 </thead>
@@ -415,7 +415,7 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                                 <td>
                                     <img src="${imageUrl}" class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem">
                                 </td>
-                                <td>${statusText}</td>
+                               
                                 <td>
                                     
                                 </td>
