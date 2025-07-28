@@ -8,7 +8,7 @@ header('Content-Type: application/json');
 
 // ==== PEGAR TOKEN DO HEADER ====
 $headers = getallheaders();
-$authHeader = $headers['jwt-Authorization'] ?? null;
+$authHeader = $headers['Jwt-Authorization'] ?? null;
 
 if (!$authHeader || !preg_match('/Bearer\s+(\S+)/', $authHeader, $matches)) {
     http_response_code(401);
