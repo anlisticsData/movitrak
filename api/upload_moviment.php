@@ -5,6 +5,10 @@ header('Content-Type: application/json');
 
 // ==== PEGAR TOKEN DO HEADER ====
 $headers = getallheaders();
+print_r($headers);
+
+
+exit;
 $authHeader = $headers['Authorization'] ?? null;
 
 if (!$authHeader || !preg_match('/Bearer\s+(\S+)/', $authHeader, $matches)) {
