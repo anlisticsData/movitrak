@@ -2,16 +2,24 @@
 require_once '../includes/db.php';
 
 header('Content-Type: application/json');
- 
 
-$userId =$_POST['user'];
- 
+
+
 try {
-    $plate =  $_POST['plate'] ?? '';
-    $lancamentos = $movimentVacanciesDAO->getLancamentosUnicosPorPlacaEUsuario($plate, $userId);
+     $lancamentos=[];
+    if (isset($_POST['user'])) {
+        $userId = $_POST['user'];
+        $plate =  $_POST['plate'] ?? '';
+        $lancamentos = $movimentVacanciesDAO->getLancamentosUnicosPorPlacaEUsuario($plate, $userId);
+        echo json_encode([
+            "success" => true,
+            "data" =>    $lancamentos
+        ]);
+        exit;
+    }
     echo json_encode([
         "success" => true,
-        "data" =>    $lancamentos 
+        "data" =>    $lancamentos
     ]);
 } catch (PDOException $e) {
     http_response_code(500);
