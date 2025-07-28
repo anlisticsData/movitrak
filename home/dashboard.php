@@ -12,8 +12,13 @@ $userId = $_SESSION['user_id'];
 
 $movimentVacanciesDAO = new MovimentVacanciesDAO($pdo);
 
-// Dados para o gráfico
 $movimentos_ultimos_dias = $movimentVacanciesDAO->getMovimentosUltimosDiasPorUsuario($userId);
+$movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($userId);
+$movimentos_do_dia = $movimentVacanciesDAO->getResumoMovimentosDoDiaPorUsuario($userId);
+$vagas_status = $movimentVacanciesDAO->getVagasStatusPorUsuario($userId);
+$vaga_maior_tempo = $movimentVacanciesDAO->getVagaMaiorTempoPorUsuario($userId);
+$vaga_maior_frequencia = $movimentVacanciesDAO->getVagaMaiorFrequenciaPorUsuario($userId);
+
 $movimentos_dias = [];
 $movimentos_contagem = [];
 foreach ($movimentos_ultimos_dias as $movimento) {
@@ -37,34 +42,47 @@ foreach ($movimentos_ultimos_dias as $movimento) {
     <title>Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Adicionando Chart.js -->
     <style>
-        body {
+        main {
+            padding-bottom: 60px;
+        }
+
+        #autoRefreshPanel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
             background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        h2 {
-            color: #007bff;
-        }
-
-        input {
-            border-radius: 10px;
-        }
-
-        .card {
-            transition: transform 0.2s;
-        }
-
-        .card:hover {
-            transform: scale(1.05);
+        /* Outros estilos */
+        .card-img-top {
+            cursor: pointer;
         }
 
         .toast-container {
-            bottom: 90px;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column-reverse;
         }
 
-        #movimentosSemanaChart {
-            margin: 20px 0;
+        .table-img-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            cursor: pointer;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -75,17 +93,24 @@ foreach ($movimentos_ultimos_dias as $movimento) {
         <div class="row">
             <?php include('../includes/components/sidebar.php'); ?>
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-                <h2>Dashboard de Movimentos de Vagas</h2>
+                <h2>Dashboard</h2>
 
                 <!-- CAMPO DE BUSCA DE PLACA DESTACADO -->
                 <div class="row mt-4">
                     <div class="col-lg-7 col-md-9 mx-auto">
-                        <div class="input-group input-group-lg mb-3 shadow">
-                            <input type="text" id="placaBuscaInput" class="form-control" placeholder="Digite a placa..." aria-label="Buscar placa" autocomplete="off">
+                        <div class="input-group input-group-lg mb-3 shadow" style="background:#f8f9fa;border-radius:10px;border:2px solid #007bff;">
+                            <input
+                                type="text"
+                                id="placaBuscaInput"
+                                class="form-control"
+                                placeholder="Digite a placa ..."
+                                aria-label="Buscar placa"
+                                autocomplete="off">
                             <div class="input-group-append">
-                                <button class="btn btn-primary" type="button" id="buscarPlacaBtn">
-                                    <i class="fas fa-search"></i> Buscar Placa
-                                </button>
+                                <button
+                                    class="btn btn-primary"
+                                    type="button"
+                                    id="buscarPlacaBtn"><i class="fas fa-search"></i> Buscar Placa</button>
                             </div>
                         </div>
                     </div>
@@ -100,19 +125,32 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                     </div>
                 </div>
 
-                <!-- MOVIMENTOS RECENTES -->
+                <!-- MOVIMENTOS RECENTES COM MODAL NAS IMAGENS -->
                 <div class="row mt-3">
                     <div class="col-md-12">
                         <h4>Movimentos Recentes</h4>
                         <div class="card-deck flex-wrap">
-                            <?php $movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($userId); ?>
-                            <?php if (!empty($movimentos_recentes)): ?>
-                                <?php foreach ($movimentos_recentes as $movimento): ?>
-                                    <div class="card mb-3">
-                                        <?php if (!empty($movimento['file_path'])): ?>
-                                            <img src="../<?php echo htmlspecialchars($movimento['file_path']); ?>" class="card-img-top visualizar-imagem" data-imagem="../<?php echo htmlspecialchars($movimento['file_path']); ?>" alt="Imagem do movimento" style="height: 180px; object-fit: cover;">
+                            <?php if (!empty($movimentos_recentes)) : ?>
+                                <?php foreach ($movimentos_recentes as $movimento) : ?>
+                                    <?php
+                                    $isOcupado = isset($movimento['ocupado']) && $movimento['ocupado'];
+                                    $cardClass = $isOcupado ? 'border-danger bg-light' : '';
+                                    ?>
+                                    <div class="card mb-3 <?php echo $cardClass; ?>" style="max-width: 300px;">
+                                        <?php if (!empty($movimento['file_path'])) : ?>
+                                            <img
+                                                src="../<?php echo htmlspecialchars($movimento['file_path']); ?>"
+                                                class="card-img-top visualizar-imagem"
+                                                data-imagem="../<?php echo htmlspecialchars($movimento['file_path']); ?>"
+                                                alt="Imagem do movimento"
+                                                style="height: 180px; object-fit: cover;">
                                         <?php else: ?>
-                                            <img src="../assets/img/no-image.png" class="card-img-top visualizar-imagem" data-imagem="../assets/img/no-image.png" alt="Sem imagem" style="height: 180px; object-fit: cover;">
+                                            <img
+                                                src="../assets/img/no-image.png"
+                                                class="card-img-top visualizar-imagem"
+                                                data-imagem="../assets/img/no-image.png"
+                                                alt="Sem imagem"
+                                                style="height: 180px; object-fit: cover;">
                                         <?php endif; ?>
                                         <div class="card-body">
                                             <h5 class="card-title">ID da Vaga: <?php echo $movimento['fk_vacancie']; ?></h5>
@@ -122,11 +160,13 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                                                     Registrado em: <?php echo converterParaSaoPaulo(date('d/m/Y H:i', strtotime($movimento['created_at']))); ?>
                                                 </small>
                                             </p>
-                                            <a href="../cameras/historical?id=<?php echo $movimento['fk_vacancie']; ?>" class="btn btn-primary mt-2">Ver Histórico</a>
+                                            <a href="../cameras/historical?id=<?php echo $movimento['fk_vacancie']; ?>" class="btn btn-primary mt-2">
+                                                Ver Histórico
+                                            </a>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
-                            <?php else: ?>
+                            <?php else : ?>
                                 <div class="col-12 text-center py-4">
                                     <p class="lead text-muted">Não há movimentos recentes no momento.</p>
                                 </div>
@@ -134,7 +174,52 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                         </div>
                     </div>
                 </div>
+
+                <!-- Modal de visualização de imagem -->
+                <div class="modal fade" id="imagemModal" tabindex="-1" aria-labelledby="imagemModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="imagemModalLabel">Visualizar Imagem</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="" id="imagemModalImg" class="img-fluid" alt="Visualização da imagem">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Novo Modal para Resultados da Busca de Placa -->
+                <div class="modal fade" id="searchResultsModal" tabindex="-1" aria-labelledby="searchResultsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="searchResultsModalLabel">Resultados da Busca por Placa</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body" id="searchResultsBody">
+                                <!-- Resultados da busca -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
+        </div>
+    </div>
+
+    <!-- Painel de Auto-Refresh -->
+    <div id="autoRefreshPanel" class="d-flex justify-content-center align-items-center">
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="autoRefreshToggle">
+            <label class="form-check-label" for="autoRefreshToggle">
+                Atualização Automática (a cada 1 min)
+            </label>
         </div>
     </div>
 
@@ -147,7 +232,7 @@ foreach ($movimentos_ultimos_dias as $movimento) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Dados para o gráfico
+        // Variáveis de controle do gráfico
         const movimentCounts = <?php echo json_encode($movimentos_contagem); ?>;
         const movimentDays = <?php echo json_encode($movimentos_dias); ?>;
 
@@ -159,15 +244,14 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                 data: {
                     labels: movimentDays, // Dias da semana
                     datasets: [{
-                        label: 'Número de Movimentos',
+                        label: '# de Movimentos',
                         data: movimentCounts, // Contagem de movimentos
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
                     }]
                 },
                 options: {
-                    responsive: true,
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -186,10 +270,9 @@ foreach ($movimentos_ultimos_dias as $movimento) {
                 }
             });
 
-            // Aqui você pode adicionar mais funcionalidades e interações
+            // Resto do seu código JavaScript...
         });
     </script>
 
 </body>
-
 </html>
