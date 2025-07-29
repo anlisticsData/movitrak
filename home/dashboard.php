@@ -80,6 +80,13 @@ $dias_da_semana = ['Sun' => 'Domingo', 'Mon' => 'Segunda', 'Tue' => 'Terça', 'W
 $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
     return $dias_da_semana[$dia];
 }, $movimentos_dias);
+
+
+$totalPlacasUnicas = array_sum($contagemPorDia);
+echo "<p>Total de placas distintas na semana: <strong>$totalPlacasUnicas</strong></p>";
+
+
+
 ?>
 
 
