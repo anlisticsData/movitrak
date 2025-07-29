@@ -14,8 +14,26 @@ $movimentVacanciesDAO = new MovimentVacanciesDAO($pdo);
 
 // Função para validar placa brasileira (modelo antigo ou Mercosul)
 function placaValida($placa) {
-    return preg_match('/^[A-Z]{3}[0-9][0-9A-Z][0-9]{2}$/', strtoupper($placa));
+    $placa = strtoupper(preg_replace('/[^A-Z0-9]/', '', $placa)); // remove caracteres inválidos
+
+    // Padrão antigo: ABC1234
+    if (preg_match('/^[A-Z]{3}[0-9]{4}$/', $placa)) {
+        return true;
+    }
+
+    // Padrão Mercosul: ABC1D23
+    if (preg_match('/^[A-Z]{3}[0-9][A-Z][0-9]{2}$/', $placa)) {
+        return true;
+    }
+
+    // Placas especiais (7 ou 8 caracteres alfanuméricos)
+    if (preg_match('/^[A-Z0-9]{7,8}$/', $placa)) {
+        return true;
+    }
+
+    return false;
 }
+
 
 // Buscando dados
 $movimentos_ultimos_dias = $movimentVacanciesDAO->getMovimentosUltimosDiasPorUsuario($userId);
