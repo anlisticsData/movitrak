@@ -72,6 +72,9 @@ $movimentos_dias = array_keys($contagemPorDia);
 $movimentos_contagem = array_values($contagemPorDia);
 
 
+print_r($movimentos_contagem);
+
+
 
 // Traduzindo os dias da semana para português
 $dias_da_semana = ['Sun' => 'Domingo', 'Mon' => 'Segunda', 'Tue' => 'Terça', 'Wed' => 'Quarta', 'Thu' => 'Quinta', 'Fri' => 'Sexta', 'Sat' => 'Sábado'];
