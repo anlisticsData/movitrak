@@ -13,7 +13,8 @@ $userId = $_SESSION['user_id'];
 $movimentVacanciesDAO = new MovimentVacanciesDAO($pdo);
 
 // Função para validar placa brasileira (modelo antigo ou Mercosul)
-function placaValida($placa) {
+function placaValida($placa)
+{
     $placa = strtoupper(preg_replace('/[^A-Z0-9]/', '', $placa)); // remove caracteres inválidos
 
     // Padrão antigo: ABC1234
@@ -61,12 +62,15 @@ foreach ($movimentos_ultimos_dias as $movimento) {
     // Se essa placa já foi contada nesse dia, ignore
     if (in_array($placa, $placasPorDia[$dia])) continue;
 
-    $placasPorDia[$dia][] = $placa;
 
-    if (!isset($contagemPorDia[$dia])) {
-        $contagemPorDia[$dia] = 1;
-    } else {
-        $contagemPorDia[$dia]++;
+    if ($placa != "OCR_FAILED") {
+        $placasPorDia[$dia][] = $placa;
+
+        if (!isset($contagemPorDia[$dia])) {
+            $contagemPorDia[$dia] = 1;
+        } else {
+            $contagemPorDia[$dia]++;
+        }
     }
 }
 
@@ -74,13 +78,13 @@ foreach ($movimentos_ultimos_dias as $movimento) {
 $movimentos_dias = array_keys($contagemPorDia);
 $movimentos_contagem = array_values($contagemPorDia);
 
- 
+
 
 
 
 // Traduzindo os dias da semana para português
 $dias_da_semana = ['Sun' => 'Domingo', 'Mon' => 'Segunda', 'Tue' => 'Terça', 'Wed' => 'Quarta', 'Thu' => 'Quinta', 'Fri' => 'Sexta', 'Sat' => 'Sábado'];
-$dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
+$dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
     return $dias_da_semana[$dia];
 }, $movimentos_dias);
 
@@ -94,6 +98,7 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -105,17 +110,19 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
         main {
             padding-bottom: 60px;
         }
+
         /* Container de toasts */
         .toast-container {
             position: fixed;
-            bottom: 80px; 
+            bottom: 80px;
             right: 20px;
-            z-index: 1050; 
+            z-index: 1050;
             display: flex;
-            flex-direction: column-reverse; 
+            flex-direction: column-reverse;
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <?php include('../includes/components/header.php'); ?>
@@ -123,7 +130,7 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
             <?php include('../includes/components/sidebar.php'); ?>
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
                 <h2>Dashboard</h2>
-                
+
                 <!-- CAMPO DE BUSCA DE PLACA DESTACADO -->
                 <div class="row mt-4">
                     <div class="col-lg-7 col-md-9 mx-auto">
@@ -230,29 +237,29 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
     <script>
         // Configuração do gráfico de movimentos diários
         const ctx = document.getElementById('movimentosChart').getContext('2d');
-const movimentosChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: <?php echo json_encode($dias_em_portugues); ?>,
-        datasets: [{
-            label: 'Placas únicas/dia',
-            data: <?php echo json_encode($movimentos_contagem); ?>,
-            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
+        const movimentosChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($dias_em_portugues); ?>,
+                datasets: [{
+                    label: 'Placas únicas/dia',
+                    data: <?php echo json_encode($movimentos_contagem); ?>,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
                 }
             }
-        }
-    }
-});
+        });
 
         // Lógica de busca de placa
         const placaBuscaInput = document.getElementById('placaBuscaInput');
@@ -355,10 +362,11 @@ const movimentosChart = new Chart(ctx, {
             const newToast = $(toastHtml);
             $(toastContainer).prepend(newToast);
             newToast.toast('show');
-            newToast.on('hidden.bs.toast', function () {
+            newToast.on('hidden.bs.toast', function() {
                 $(this).remove();
             });
         }
     </script>
 </body>
+
 </html>
