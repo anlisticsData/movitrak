@@ -71,6 +71,8 @@ foreach ($movimentos_ultimos_dias as $movimento) {
 $movimentos_dias = array_keys($contagemPorDia);
 $movimentos_contagem = array_values($contagemPorDia);
 
+
+
 // Traduzindo os dias da semana para português
 $dias_da_semana = ['Sun' => 'Domingo', 'Mon' => 'Segunda', 'Tue' => 'Terça', 'Wed' => 'Quarta', 'Thu' => 'Quinta', 'Fri' => 'Sexta', 'Sat' => 'Sábado'];
 $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
@@ -217,28 +219,30 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
     <script>
         // Configuração do gráfico de movimentos diários
         const ctx = document.getElementById('movimentosChart').getContext('2d');
-        const movimentosChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: <?php echo json_encode($dias_em_portugues); ?>,
-                datasets: [{
-                    label: 'Movimentos Diários',
-                    data: <?php echo json_encode($movimentos_contagem); ?>,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true
-                        }
-                    }]
+const ctx = document.getElementById('movimentosChart').getContext('2d');
+const movimentosChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: <?php echo json_encode($dias_em_portugues); ?>,
+        datasets: [{
+            label: 'Placas únicas/dia',
+            data: <?php echo json_encode($movimentos_contagem); ?>,
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
                 }
             }
-        });
+        }
+    }
+});
 
         // Lógica de busca de placa
         const placaBuscaInput = document.getElementById('placaBuscaInput');
