@@ -34,16 +34,14 @@ function placaValida($placa) {
     return false;
 }
 
+
 // Buscando dados
 $movimentos_ultimos_dias = $movimentVacanciesDAO->getMovimentosUltimosDiasPorUsuario($userId);
 $movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($userId);
 
-// Inicializa contagem zerada para todos os dias da semana (Sun -> Sat)
-$dias_da_semana = ['Sun' => 'Domingo', 'Mon' => 'Segunda', 'Tue' => 'Terça', 'Wed' => 'Quarta', 'Thu' => 'Quinta', 'Fri' => 'Sexta', 'Sat' => 'Sábado'];
-$contagemPorDia = array_fill_keys(array_keys($dias_da_semana), 0);
-
 // Processando dados para o gráfico com filtro de 1h e placas válidas
 $placaUltimoHorario = [];
+$contagemPorDia = [];
 
 foreach ($movimentos_ultimos_dias as $movimento) {
     $placa = strtoupper($movimento['placa'] ?? '');
@@ -62,50 +60,46 @@ foreach ($movimentos_ultimos_dias as $movimento) {
 
     // Agrupar por dia da semana (em inglês)
     $dia = date('D', $createdAt);
-
-    if (isset($contagemPorDia[$dia])) {
+    if (!isset($contagemPorDia[$dia])) {
+        $contagemPorDia[$dia] = 1;
+    } else {
         $contagemPorDia[$dia]++;
     }
 }
 
-// Garantir que a ordem dos dias está correta (Dom -> Seg)
-$movimentos_dias = array_keys($dias_da_semana); // ['Sun','Mon',...,'Sat']
+// Organizar os dados para o gráfico
+$movimentos_dias = array_keys($contagemPorDia);
+$movimentos_contagem = array_values($contagemPorDia);
 
-// Traduzir os dias em português mantendo a ordem
+// Traduzindo os dias da semana para português
+$dias_da_semana = ['Sun' => 'Domingo', 'Mon' => 'Segunda', 'Tue' => 'Terça', 'Wed' => 'Quarta', 'Thu' => 'Quinta', 'Fri' => 'Sexta', 'Sat' => 'Sábado'];
 $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
     return $dias_da_semana[$dia];
 }, $movimentos_dias);
-
-// Extrair os valores na mesma ordem dos dias
-$movimentos_contagem = [];
-foreach ($movimentos_dias as $dia) {
-    $movimentos_contagem[] = $contagemPorDia[$dia] ?? 0;
-}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
     <style>
+        /* Estilos personalizados */
         main {
             padding-bottom: 60px;
         }
+        /* Container de toasts */
         .toast-container {
             position: fixed;
-            bottom: 80px;
+            bottom: 80px; 
             right: 20px;
-            z-index: 1050;
+            z-index: 1050; 
             display: flex;
-            flex-direction: column-reverse;
-        }
-        .table-img-thumbnail {
-            cursor: pointer;
-            border-radius: 4px;
+            flex-direction: column-reverse; 
         }
     </style>
 </head>
@@ -116,8 +110,8 @@ foreach ($movimentos_dias as $dia) {
             <?php include('../includes/components/sidebar.php'); ?>
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
                 <h2>Dashboard</h2>
-
-                <!-- CAMPO DE BUSCA DE PLACA -->
+                
+                <!-- CAMPO DE BUSCA DE PLACA DESTACADO -->
                 <div class="row mt-4">
                     <div class="col-lg-7 col-md-9 mx-auto">
                         <div class="input-group input-group-lg mb-3 shadow" style="background:#f8f9fa;border-radius:10px;border:2px solid #007bff;">
@@ -127,7 +121,7 @@ foreach ($movimentos_dias as $dia) {
                                 class="form-control"
                                 placeholder="Digite a placa ..."
                                 aria-label="Buscar placa"
-                                autocomplete="off" />
+                                autocomplete="off">
                             <div class="input-group-append">
                                 <button
                                     class="btn btn-primary"
@@ -137,7 +131,6 @@ foreach ($movimentos_dias as $dia) {
                         </div>
                     </div>
                 </div>
-
                 <!-- Gráfico de Movimentos Diários -->
                 <div class="row mt-3">
                     <div class="col-md-12">
@@ -181,12 +174,12 @@ foreach ($movimentos_dias as $dia) {
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="imagemModalLabel">Visualizar Imagem</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
                             <div class="modal-body text-center">
-                                <img src="" id="imagemModalImg" class="img-fluid" alt="Visualização da imagem" />
+                                <img src="" id="imagemModalImg" class="img-fluid" alt="Visualização da imagem">
                             </div>
                         </div>
                     </div>
@@ -198,16 +191,17 @@ foreach ($movimentos_dias as $dia) {
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="searchResultsModalLabel">Resultados da Busca por Placa</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
                             <div class="modal-body" id="searchResultsBody">
-                                <!-- Resultados da busca aparecerão aqui -->
+                                <!-- A tabela de resultados da busca será injetada aqui -->
                             </div>
                         </div>
                     </div>
                 </div>
+
             </main>
         </div>
     </div>
@@ -215,7 +209,7 @@ foreach ($movimentos_dias as $dia) {
     <!-- Toast Container -->
     <div class="toast-container"></div>
 
-    <!-- Scripts -->
+    <!-- SCRIPTS (jQuery, Bootstrap, Chart.js) -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -239,13 +233,10 @@ foreach ($movimentos_dias as $dia) {
                 scales: {
                     yAxes: [{
                         ticks: {
-                            beginAtZero: true,
-                            stepSize: 1
+                            beginAtZero: true
                         }
                     }]
-                },
-                responsive: true,
-                maintainAspectRatio: false
+                }
             }
         });
 
@@ -301,7 +292,7 @@ foreach ($movimentos_dias as $dia) {
                                 <td>${placaText}</td>
                                 <td>${createdAtFormatted}</td>
                                 <td>
-                                    <img src="${imageUrl}" class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;" />
+                                    <img src="${imageUrl}"   class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;">
                                 </td>
                                 <td></td>
                             </tr>
@@ -322,30 +313,35 @@ foreach ($movimentos_dias as $dia) {
             }).fail(function() {
                 buscarBtn.innerHTML = originalButtonHtml;
                 buscarBtn.disabled = false;
-                showToast('Erro na comunicação com o servidor.', 'danger');
+                showToast('Erro ao comunicar com o servidor. Tente novamente.', 'danger');
             });
         });
 
-        // Abrir modal ao clicar nas imagens para visualização ampliada
+        // Event delegation para abrir o modal de visualização da imagem
         $(document).on('click', '.visualizar-imagem', function() {
-            const src = $(this).data('imagem');
-            $('#imagemModalImg').attr('src', src);
+            const imagemUrl = $(this).data('imagem');
+            $('#imagemModalImg').attr('src', imagemUrl);
             $('#imagemModal').modal('show');
         });
 
-        // Função para mostrar toast
-        function showToast(message, type = 'info', duration = 4000) {
-            const toastId = 'toast' + Date.now();
+        // Função para exibir um toast
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
             const toastHtml = `
-                <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-delay="${duration}">
-                    <div class="d-flex">
-                        <div class="toast-body">${message}</div>
-                        <button type="button" class="ml-2 mb-1 close btn-close btn-close-white" data-dismiss="toast" aria-label="Fechar"></button>
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
+                    <div class="toast-header">
+                        <strong class="mr-auto text-${type}">${type === 'success' ? 'Sucesso' : (type === 'danger' ? 'Erro' : 'Informação')}</strong>
+                        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
+                    <div class="toast-body">${message}</div>
                 </div>
             `;
-            $('.toast-container').append(toastHtml);
-            $(`#${toastId}`).toast('show').on('hidden.bs.toast', function() {
+            const newToast = $(toastHtml);
+            $(toastContainer).prepend(newToast);
+            newToast.toast('show');
+            newToast.on('hidden.bs.toast', function () {
                 $(this).remove();
             });
         }
