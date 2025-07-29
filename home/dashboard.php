@@ -219,7 +219,6 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
     <script>
         // Configuração do gráfico de movimentos diários
         const ctx = document.getElementById('movimentosChart').getContext('2d');
-const ctx = document.getElementById('movimentosChart').getContext('2d');
 const movimentosChart = new Chart(ctx, {
     type: 'bar',
     data: {
