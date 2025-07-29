@@ -43,6 +43,9 @@ $movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($u
 $placasPorDia = []; // Exemplo: [ 'Mon' => ['ABC1234', 'DEF5678'] ]
 $contagemPorDia = [];
 
+
+
+print_r(["<pre>",$movimentos_ultimos_dias]);
 foreach ($movimentos_ultimos_dias as $movimento) {
     $placa = strtoupper($movimento['placa'] ?? '');
     $createdAt = strtotime($movimento['created_at']);
@@ -82,8 +85,7 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
 }, $movimentos_dias);
 
 
-$totalPlacasUnicas = array_sum($contagemPorDia);
-echo "<p>Total de placas distintas na semana: <strong>$totalPlacasUnicas</strong></p>";
+
 
 
 
