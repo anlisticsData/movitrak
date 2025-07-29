@@ -1,10 +1,10 @@
 <?php
 
- 
+
 require_once '../includes/db.php';
 
 header('Content-Type: application/json');
- 
+
 
 // ==== PEGAR TOKEN DO HEADER ====
 $headers = getallheaders();
@@ -12,7 +12,7 @@ $authHeader = $headers['Jwt-Authorization'] ?? null;
 
 if (!$authHeader || !preg_match('/Bearer\s+(\S+)/', $authHeader, $matches)) {
     http_response_code(401);
-    echo json_encode(["error" => "Token não enviado",$headers ]);
+    echo json_encode(["error" => "Token não enviado", $headers]);
     exit;
 }
 
@@ -70,32 +70,35 @@ if (!move_uploaded_file($_FILES['file']['tmp_name'], $filePath)) {
 $ip = $_SERVER['REMOTE_ADDR'];
 
 try {
-    // Sempre INSERIR novo movimento, mesmo que já exista
-    $insertSql = "INSERT INTO moviment_vacancies 
+
+    if ("OCR_FAILED" != $placa) {
+        // Sempre INSERIR novo movimento, mesmo que já exista
+        $insertSql = "INSERT INTO moviment_vacancies 
                   (ip, fk_camera, fk_vacancie, created_at, state, file_path, placa) 
                   VALUES (:ip, :fk_camera, :fk_vacancie, NOW(), :state, :file_path, :placa)";
 
-    $insertStmt = $pdo->prepare($insertSql);
-    $insertStmt->bindParam(':ip', $ip);
-    $insertStmt->bindParam(':fk_camera', $fk_camera);
-    $insertStmt->bindParam(':fk_vacancie', $fk_vacancie);
-    $insertStmt->bindParam(':state', $state);
-    $insertStmt->bindParam(':file_path', $fileUrl);
-    $insertStmt->bindParam(':placa', $placa);
-    $insertStmt->execute();
+        $insertStmt = $pdo->prepare($insertSql);
+        $insertStmt->bindParam(':ip', $ip);
+        $insertStmt->bindParam(':fk_camera', $fk_camera);
+        $insertStmt->bindParam(':fk_vacancie', $fk_vacancie);
+        $insertStmt->bindParam(':state', $state);
+        $insertStmt->bindParam(':file_path', $fileUrl);
+        $insertStmt->bindParam(':placa', $placa);
+        $insertStmt->execute();
 
-    echo json_encode([
-        "success" => true,
-        "message" => "Movimentação registrada com sucesso",
-        "user_id" => $user_id,
-        "data" => [
-            "fk_vacancie" => $fk_vacancie,
-            "fk_camera" => $fk_camera,
-            "state" => $state,
-            "file_url" => $fileUrl,
-            "placa" => $placa
-        ]
-    ]);
+        echo json_encode([
+            "success" => true,
+            "message" => "Movimentação registrada com sucesso",
+            "user_id" => $user_id,
+            "data" => [
+                "fk_vacancie" => $fk_vacancie,
+                "fk_camera" => $fk_camera,
+                "state" => $state,
+                "file_url" => $fileUrl,
+                "placa" => $placa
+            ]
+        ]);
+    }
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(["error" => "Erro ao salvar no banco: " . $e->getMessage()]);
