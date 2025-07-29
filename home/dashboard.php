@@ -45,7 +45,7 @@ $contagemPorDia = [];
 
 
 
-print_r(["<pre>",$movimento]);
+//print_r(["<pre>",$movimento]);
 foreach ($movimentos_ultimos_dias as $movimento) {
     $placa = strtoupper($movimento['placa'] ?? '');
     $createdAt = strtotime($movimento['created_at']);
