@@ -71,13 +71,14 @@ class MovimentVacanciesDAO
 
 
 
-
-    public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
-    {
-        $sql = "
+public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
+{
+    $sql = "
         SELECT 
-            m.id, m.fk_camera, m.fk_vacancie, m.created_at, m.state, m.file_path,
-            v.name AS vaga_name, c.name AS camera_name
+            m.id, m.fk_camera, m.fk_vacancie, m.created_at, m.state, 
+            m.file_path, m.placa,  -- <-- Aqui incluímos a placa
+            v.name AS vaga_name, 
+            c.name AS camera_name
         FROM moviment_vacancies m
         LEFT JOIN cameras c ON m.fk_camera = c.id
         LEFT JOIN vacancies v ON m.fk_vacancie = v.id
@@ -86,14 +87,13 @@ class MovimentVacanciesDAO
         ORDER BY m.created_at DESC
     ";
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(':dias', $dias, PDO::PARAM_INT);
-        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->execute();
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->bindValue(':dias', $dias, PDO::PARAM_INT);
+    $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+    $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 
 
