@@ -40,26 +40,26 @@ $movimentos_ultimos_dias = $movimentVacanciesDAO->getMovimentosUltimosDiasPorUsu
 $movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($userId);
 
 // Processando dados para o gráfico com filtro de 1h e placas válidas
-$placaUltimoHorario = [];
+$placasPorDia = []; // Exemplo: [ 'Mon' => ['ABC1234', 'DEF5678'] ]
 $contagemPorDia = [];
 
 foreach ($movimentos_ultimos_dias as $movimento) {
     $placa = strtoupper($movimento['placa'] ?? '');
     $createdAt = strtotime($movimento['created_at']);
 
-    // Validar placa
     if (!placaValida($placa)) continue;
 
-    // Verificar se já houve um movimento recente dessa placa (menos de 1 hora)
-    if (isset($placaUltimoHorario[$placa])) {
-        $diferenca = abs($createdAt - $placaUltimoHorario[$placa]);
-        if ($diferenca < 3600) continue; // Ignora se for menos de 1 hora
+    $dia = date('D', $createdAt);
+
+    if (!isset($placasPorDia[$dia])) {
+        $placasPorDia[$dia] = [];
     }
 
-    $placaUltimoHorario[$placa] = $createdAt;
+    // Se essa placa já foi contada nesse dia, ignore
+    if (in_array($placa, $placasPorDia[$dia])) continue;
 
-    // Agrupar por dia da semana (em inglês)
-    $dia = date('D', $createdAt);
+    $placasPorDia[$dia][] = $placa;
+
     if (!isset($contagemPorDia[$dia])) {
         $contagemPorDia[$dia] = 1;
     } else {
