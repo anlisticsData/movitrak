@@ -12,23 +12,46 @@ $userId = $_SESSION['user_id'];
 
 $movimentVacanciesDAO = new MovimentVacanciesDAO($pdo);
 
+// Função para validar placa brasileira (modelo antigo ou Mercosul)
+function placaValida($placa) {
+    return preg_match('/^[A-Z]{3}[0-9][0-9A-Z][0-9]{2}$/', strtoupper($placa));
+}
+
 // Buscando dados
 $movimentos_ultimos_dias = $movimentVacanciesDAO->getMovimentosUltimosDiasPorUsuario($userId);
 $movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($userId);
 
-// Processando dados para o gráfico
-$movimentos_dias = [];
-$movimentos_contagem = [];
+// Processando dados para o gráfico com filtro de 1h e placas válidas
+$placaUltimoHorario = [];
+$contagemPorDia = [];
+
 foreach ($movimentos_ultimos_dias as $movimento) {
-    $dia = date('D', strtotime($movimento['created_at']));
-    if (!in_array($dia, $movimentos_dias)) {
-        $movimentos_dias[] = $dia;
-        $movimentos_contagem[] = 1;
+    $placa = strtoupper($movimento['placa'] ?? '');
+    $createdAt = strtotime($movimento['created_at']);
+
+    // Validar placa
+    if (!placaValida($placa)) continue;
+
+    // Verificar se já houve um movimento recente dessa placa (menos de 1 hora)
+    if (isset($placaUltimoHorario[$placa])) {
+        $diferenca = abs($createdAt - $placaUltimoHorario[$placa]);
+        if ($diferenca < 3600) continue; // Ignora se for menos de 1 hora
+    }
+
+    $placaUltimoHorario[$placa] = $createdAt;
+
+    // Agrupar por dia da semana (em inglês)
+    $dia = date('D', $createdAt);
+    if (!isset($contagemPorDia[$dia])) {
+        $contagemPorDia[$dia] = 1;
     } else {
-        $index = array_search($dia, $movimentos_dias);
-        $movimentos_contagem[$index]++;
+        $contagemPorDia[$dia]++;
     }
 }
+
+// Organizar os dados para o gráfico
+$movimentos_dias = array_keys($contagemPorDia);
+$movimentos_contagem = array_values($contagemPorDia);
 
 // Traduzindo os dias da semana para português
 $dias_da_semana = ['Sun' => 'Domingo', 'Mon' => 'Segunda', 'Tue' => 'Terça', 'Wed' => 'Quarta', 'Thu' => 'Quinta', 'Fri' => 'Sexta', 'Sat' => 'Sábado'];
@@ -36,6 +59,7 @@ $dias_em_portugues = array_map(function($dia) use ($dias_da_semana) {
     return $dias_da_semana[$dia];
 }, $movimentos_dias);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-br">
