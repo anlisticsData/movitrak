@@ -42,21 +42,33 @@ $movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($u
 // Processando dados para o gráfico com filtro de 1h e placas válidas
 $placasPorDia = []; // Exemplo: [ 'Mon' => ['ABC1234', 'DEF5678'] ]
 $contagemPorDia = [];
-
 foreach ($movimentos_ultimos_dias as $movimento) {
     $placa = strtoupper($movimento['placa'] ?? '');
     $createdAt = strtotime($movimento['created_at']);
+    
+    echo "Placa: $placa | Data: {$movimento['created_at']} | Timestamp: $createdAt<br>";
 
-    if (!placaValida($placa)) continue;
+    if (!placaValida($placa)) {
+        echo "❌ Placa inválida: $placa<br>";
+        continue;
+    }
+
+    if (!$createdAt) {
+        echo "❌ Data inválida: {$movimento['created_at']}<br>";
+        continue;
+    }
 
     $dia = date('D', $createdAt);
+    echo "Dia da semana: $dia<br>";
 
     if (!isset($placasPorDia[$dia])) {
         $placasPorDia[$dia] = [];
     }
 
-    // Se essa placa já foi contada nesse dia, ignore
-    if (in_array($placa, $placasPorDia[$dia])) continue;
+    if (in_array($placa, $placasPorDia[$dia])) {
+        echo "🔁 Placa repetida no dia: $placa<br>";
+        continue;
+    }
 
     $placasPorDia[$dia][] = $placa;
 
@@ -71,8 +83,7 @@ foreach ($movimentos_ultimos_dias as $movimento) {
 $movimentos_dias = array_keys($contagemPorDia);
 $movimentos_contagem = array_values($contagemPorDia);
 
-
-print_r($movimentos_contagem);
+ 
 
 
 
