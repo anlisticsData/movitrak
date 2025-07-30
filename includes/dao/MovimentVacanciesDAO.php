@@ -155,7 +155,7 @@ public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
             WHERE c2.fk_user = :user_id
             GROUP BY m2.fk_vacancie
         ) ult ON m.fk_vacancie = ult.fk_vacancie AND m.created_at = ult.max_created
-        WHERE c.fk_user = :user_id
+        WHERE c.fk_user = :user_id and m2.state=1
         ORDER BY m.created_at DESC
         LIMIT 5
     ";
