@@ -50,6 +50,7 @@ $contagemPorDia = [];
 foreach ($movimentos_ultimos_dias as $movimento) {
     $placa = strtoupper($movimento['placa'] ?? '');
     $createdAt = strtotime($movimento['created_at']);
+    $state =  $movimento['state'];
 
     //if (!placaValida($placa)) continue;
 
@@ -63,8 +64,9 @@ foreach ($movimentos_ultimos_dias as $movimento) {
     if (in_array($placa, $placasPorDia[$dia])) continue;
 
 
-    if ($placa != "OCR_FAILED") {
+    if ($placa != "OCR_FAILED"  && $state) {
         $placasPorDia[$dia][] = $placa;
+
 
         if (!isset($contagemPorDia[$dia])) {
             $contagemPorDia[$dia] = 1;
