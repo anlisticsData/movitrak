@@ -152,7 +152,7 @@ public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
             SELECT m2.fk_vacancie, MAX(m2.created_at) AS max_created
             FROM moviment_vacancies m2
             INNER JOIN cameras c2 ON m2.fk_camera = c2.id
-            WHERE c2.fk_user = :user_id
+            WHERE c2.fk_user = :user_id  and m2.state=1
             GROUP BY m2.fk_vacancie
         ) ult ON m.fk_vacancie = ult.fk_vacancie AND m.created_at = ult.max_created
         WHERE c.fk_user = :user_id 
