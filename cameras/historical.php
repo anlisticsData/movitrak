@@ -28,9 +28,6 @@ $totalPages = ceil($totalMovimentos / $limit);
 $movimentos = $movDAO->getMovimentosPorVaga($vagaId, $limit, $offset);
 
 
-print_r([$movimentos]);exit;
-
-
 
 ?>
 
