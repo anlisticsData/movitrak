@@ -23,7 +23,7 @@ function converterParaSaoPaulo(string $dataUTC): string {
 }
  
 
-function extrairPlaca(string $string): string
+function extrairPlacaMercosul(string $string): string
 {
     $string = strtoupper($string);
 
