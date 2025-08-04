@@ -289,6 +289,8 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
                 buscarBtn.innerHTML = originalButtonHtml;
                 buscarBtn.disabled = false;
 
+                console.log("##4",response.data)
+
                 $('#searchResultsBody').empty();
                 if (response.success && response.data && response.data.length > 0) {
                     let tableHtml = `
@@ -305,7 +307,7 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
                                 </thead>
                                 <tbody>
                     `;
-                    response.data.movimetos.forEach(function(movimento) {
+                    response.data.forEach(function(movimento) {
                         const imageUrl = movimento.file_path ? `../${movimento.file_path}` : '../assets/img/no-image.png';
                         const placaText = movimento.placa ? movimento.placa : 'N/A';
                         const createdAtFormatted = new Date(movimento.created_at).toLocaleString('pt-BR');
