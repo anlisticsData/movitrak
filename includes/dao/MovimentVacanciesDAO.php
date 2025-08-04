@@ -517,12 +517,21 @@ public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
 }
 
 
-    public function countMovimentosPorVaga($vagaId)
-    {
-        $sql = "SELECT COUNT(*) FROM moviment_vacancies WHERE fk_vacancie = :vaga_id";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
-        $stmt->execute();
-        return (int)$stmt->fetchColumn();
-    }
+public function countMovimentosPorVaga($vagaId)
+{
+    $sql = "
+        SELECT COUNT(*) FROM (
+            SELECT DATE(created_at) AS data_unica
+            FROM moviment_vacancies
+            WHERE fk_vacancie = :vaga_id
+            GROUP BY DATE(created_at)
+        ) AS dias
+    ";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
+    $stmt->execute();
+    return (int)$stmt->fetchColumn();
+}
+
 }
