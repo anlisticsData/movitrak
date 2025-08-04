@@ -490,7 +490,7 @@ public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
     }
 
 
-public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
+public function getMovimentosPorVaga($vagaId, $limit = 1000, $offset = 0)
 {
     $sql = "
         SELECT 
