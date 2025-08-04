@@ -28,13 +28,12 @@ class MovimentVacanciesDAO
             m.created_at
         FROM moviment_vacancies m
         INNER JOIN cameras c ON m.fk_camera = c.id
-        WHERE m.placa like '%:placa%'
-          AND c.fk_user = :user_id
-          ORDER BY m.created_at DESC
+        WHERE m.placa like :placa
+          AND c.fk_user = :user_id   ORDER BY m.created_at DESC
     ";
 
     $stmt = $this->pdo->prepare($sql);
-    $stmt->bindValue(':placa', $placa, PDO::PARAM_STR);
+    $stmt->bindValue(':placa',sprintf("%%s%", $placa), PDO::PARAM_STR);
     $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
     $stmt->execute();
 
