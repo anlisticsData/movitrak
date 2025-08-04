@@ -489,38 +489,32 @@ public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
         return $stmt->fetch(PDO::FETCH_ASSOC); // Retorna o resultado da consulta
     }
 
-public function getMovimentosPorVaga($vagaId, $limit, $offset) {
-    $stmt = $this->pdo->prepare("
-        SELECT *
-        FROM (
-            SELECT m.*, DATE(m.created_at) as data_mov
-            FROM moviment_vacancies m
-            WHERE m.vaga_id = :vaga_id
-            GROUP BY DATE(m.created_at), m.placa
-            ORDER BY DATE(m.created_at) DESC, m.created_at DESC
-        ) AS movimentos_unicos
-        LIMIT :limit OFFSET :offset
-    ");
-    $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
 
-public function countMovimentosPorVaga($vagaId) {
-    $stmt = $this->pdo->prepare("
-        SELECT COUNT(*) as total
-        FROM (
-            SELECT DATE(created_at), placa
-            FROM moviment_vacancies
-            WHERE vaga_id = :vaga_id
-            GROUP BY DATE(created_at), placa
-        ) as movimentos_unicos
-    ");
-    $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
-    $stmt->execute();
-    return (int) $stmt->fetchColumn();
-}
+    public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
+    {
+        $sql = "SELECT 
+                    m.id, m.created_at, m.state, m.file_path, m.placa,
+                    c.name AS camera_name
+                FROM moviment_vacancies m
+                LEFT JOIN cameras c ON m.fk_camera = c.id
+                WHERE m.fk_vacancie = :vaga_id
+                ORDER BY m.created_at DESC
+                LIMIT :limit OFFSET :offset";
 
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countMovimentosPorVaga($vagaId)
+    {
+        $sql = "SELECT COUNT(*) FROM moviment_vacancies WHERE fk_vacancie = :vaga_id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
 }
