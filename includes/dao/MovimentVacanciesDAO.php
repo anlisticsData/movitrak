@@ -516,17 +516,15 @@ public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
-
 public function countMovimentosPorVaga($vagaId)
 {
     $sql = "
         SELECT COUNT(*) FROM (
-            SELECT DATE(created_at) AS data_unica
+            SELECT DATE(created_at) AS data_unica, placa
             FROM moviment_vacancies
             WHERE fk_vacancie = :vaga_id
-            GROUP BY DATE(created_at)
-        ) AS dias
+            GROUP BY placa, DATE(created_at)
+        ) AS dias_placas
     ";
 
     $stmt = $this->pdo->prepare($sql);
@@ -534,5 +532,6 @@ public function countMovimentosPorVaga($vagaId)
     $stmt->execute();
     return (int)$stmt->fetchColumn();
 }
+
 
 }
