@@ -501,7 +501,7 @@ public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
             SELECT MAX(id) AS latest_id
             FROM moviment_vacancies
             WHERE fk_vacancie = :vaga_id
-            GROUP BY DATE(created_at)
+            GROUP BY placa, DATE(created_at)
         ) latest ON m.id = latest.latest_id
         LEFT JOIN cameras c ON m.fk_camera = c.id
         ORDER BY m.created_at DESC
@@ -515,6 +515,7 @@ public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 
 
 public function countMovimentosPorVaga($vagaId)
