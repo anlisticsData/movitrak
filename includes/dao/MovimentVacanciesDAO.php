@@ -505,7 +505,7 @@ public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
         ) latest ON m.id = latest.latest_id
         LEFT JOIN cameras c ON m.fk_camera = c.id
         ORDER BY m.created_at DESC
-        LIMIT :limit OFFSET :offset
+        LIMIT :offset,:limit
     ";
 
     $stmt = $this->pdo->prepare($sql);
