@@ -11,8 +11,6 @@ try {
         $userId = $_POST['user'];
         $plate =  $_POST['plate'] ?? '';
         $movimentVacanciesDAO =  new MovimentVacanciesDAO($pdo);
-
-        
         $lancamentos = $movimentVacanciesDAO->getTodosMovimentosDoDiaAtual($plate, $userId);
         echo json_encode([
             "success" => true,

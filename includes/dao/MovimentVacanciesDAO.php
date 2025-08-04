@@ -16,6 +16,9 @@ class MovimentVacanciesDAO
 
    public function getTodosMovimentosDoDiaAtual($placa, $userId)
 {
+
+
+    print_r([$placa, $userId]);exit;
     $sql = "
         SELECT
             DATE(m.created_at) AS dia,
