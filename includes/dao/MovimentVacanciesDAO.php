@@ -37,7 +37,7 @@ class MovimentVacanciesDAO
     ";
 
     $stmt = $this->pdo->prepare($sql);
-    $stmt->bindValue(':placa',"'". $placa."%'", PDO::PARAM_STR);
+    $stmt->bindValue(':placa',$placa.'%', PDO::PARAM_STR);
     $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
     $stmt->execute();
 
