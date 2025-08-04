@@ -307,22 +307,54 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
                                 </thead>
                                 <tbody>
                     `;
-                    response.data.forEach(function(movimento) {
-                        const imageUrl = movimento.file_path ? `../${movimento.file_path}` : '../assets/img/no-image.png';
-                        const placaText = movimento.placa ? movimento.placa : 'N/A';
-                        const createdAtFormatted = new Date(movimento.created_at).toLocaleString('pt-BR');
-                        tableHtml += `
-                            <tr>
-                                <td>${movimento.fk_vacancie}</td>
-                                <td>${placaText}</td>
-                                <td>${createdAtFormatted}</td>
-                                <td>
-                                    <img src="${imageUrl}"   class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;">
-                                </td>
-                                <td></td>
-                            </tr>
-                        `;
-                    });
+                   
+                    
+                    response.data.forEach(function(placaInfo) {
+    const placaText = placaInfo.placa ?? 'N/A';
+    const primeiraHora = placaInfo.primeira_hora ?? '—';
+    const ultimaHora = placaInfo.ultima_hora ?? '—';
+    const dia = placaInfo.dia ?? '';
+
+    // Cabeçalho para o grupo da placa
+    tableHtml += `
+        <tr class="table-primary">
+            <td colspan="5">
+                <strong>Placa:</strong> ${placaText} |
+                <strong>Dia:</strong> ${dia} |
+                <strong>Primeira Hora:</strong> ${primeiraHora} |
+                <strong>Última Hora:</strong> ${ultimaHora}
+            </td>
+        </tr>
+    `;
+
+    // Lista os movimentos dessa placa
+    placaInfo.movimentos.forEach(function(movimento) {
+        const imageUrl = movimento.file_path ? `../${movimento.file_path}` : '../assets/img/no-image.png';
+        const createdAtFormatted = new Date(movimento.created_at).toLocaleString('pt-BR');
+        const vacaId = movimento.fk_vacancie ?? '—';
+        const estado = movimento.state ?? '—';
+
+        tableHtml += `
+            <tr>
+                <td>${vacaId}</td>
+                <td>${placaText}</td>
+                <td>${createdAtFormatted}</td>
+                <td>
+                    <img src="${imageUrl}" class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;">
+                </td>
+                <td>
+                    <span class="badge badge-${estado === 'entrada' ? 'success' : (estado === 'saida' ? 'warning' : 'secondary')}">
+                        ${estado}
+                    </span>
+                </td>
+            </tr>
+        `;
+    });
+});
+
+
+
+
                     tableHtml += `
                                 </tbody>
                             </table>
