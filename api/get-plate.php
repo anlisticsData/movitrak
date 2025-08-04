@@ -71,7 +71,7 @@ try {
 
         echo json_encode([
             "success" => true,
-            "data" => $lancamentos
+            "data" => $lancamentos[0]
         ]);
         exit;
     }
