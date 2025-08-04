@@ -12,19 +12,7 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 $movimentVacanciesDAO = new MovimentVacanciesDAO($pdo);
 
-// Função para extrair placa válida (modelo antigo ou Mercosul)
-function extrairPlaca(string $placa): string {
-    $placa = strtoupper(preg_replace('/[^A-Z0-9]/', '', $placa));
-
-    // Padrão antigo: ABC1234
-    if (preg_match('/^[A-Z]{3}[0-9]{4}$/', $placa)) return $placa;
-
-    // Padrão Mercosul: ABC1D23
-    if (preg_match('/^[A-Z]{3}[0-9][A-Z][0-9]{2}$/', $placa)) return $placa;
-
-    return "OCR_FAILED";
-}
-
+ 
 // Buscando dados
 $movimentos_ultimos_dias = $movimentVacanciesDAO->getMovimentosUltimosDiasPorUsuario($userId);
 $movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($userId);
@@ -34,7 +22,7 @@ $placasPorDia = [];       // ['2025-08-04' => ['ABC1234']]
 $contagemPorDia = [];     // ['2025-08-04' => 3]
 
 foreach ($movimentos_ultimos_dias as $movimento) {
-    $placa = extrairPlaca($movimento['placa'] ?? '');
+    $placa = extrairPlacaMercosul($movimento['placa'] ?? '');
     $createdAt = strtotime($movimento['created_at']);
     $state = $movimento['state'];
 
