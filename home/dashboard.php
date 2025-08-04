@@ -289,7 +289,7 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
                 buscarBtn.innerHTML = originalButtonHtml;
                 buscarBtn.disabled = false;
 
-                console.log("##4",response.data)
+                console.log("##4", response.data)
 
                 $('#searchResultsBody').empty();
                 if (response.success && response.data && response.data.length > 0) {
@@ -307,16 +307,16 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
                                 </thead>
                                 <tbody>
                     `;
-                   
-                    
-                    response.data.forEach(function(placaInfo) {
-    const placaText = placaInfo.placa ?? 'N/A';
-    const primeiraHora = placaInfo.primeira_hora ?? '—';
-    const ultimaHora = placaInfo.ultima_hora ?? '—';
-    const dia = placaInfo.dia ?? '';
 
-    // Cabeçalho para o grupo da placa
-    tableHtml += `
+
+                    response.data.forEach(function(placaInfo) {
+                        const placaText = placaInfo.placa ?? 'N/A';
+                        const primeiraHora = placaInfo.primeira_hora ?? '—';
+                        const ultimaHora = placaInfo.ultima_hora ?? '—';
+                        const dia = placaInfo.dia ?? '';
+
+                        // Cabeçalho para o grupo da placa
+                        tableHtml += `
         <tr class="table-primary">
             <td colspan="5">
                 <strong>Placa:</strong> ${placaText} |
@@ -327,30 +327,39 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
         </tr>
     `;
 
-    // Lista os movimentos dessa placa
-    placaInfo.movimentos.forEach(function(movimento) {
-        const imageUrl = movimento.file_path ? `../${movimento.file_path}` : '../assets/img/no-image.png';
-        const createdAtFormatted = new Date(movimento.created_at).toLocaleString('pt-BR');
-        const vacaId = movimento.fk_vacancie ?? '—';
-        const estado = movimento.state ?? '—';
+                        // Lista os movimentos dessa placa
+                        let ultimaDataFormatada = null;
 
-        tableHtml += `
-            <tr>
-                <td>${vacaId}</td>
-                <td>${placaText}</td>
-                <td>${createdAtFormatted}</td>
-                <td>
-                    <img src="${imageUrl}" class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;">
-                </td>
-                <td>
-                    <span class="badge badge-${estado === 'entrada' ? 'success' : (estado === 'saida' ? 'warning' : 'secondary')}">
-                        ${estado}
-                    </span>
-                </td>
-            </tr>
-        `;
-    });
-});
+                        placaInfo.movimentos.forEach(function(movimento) {
+                            const imageUrl = movimento.file_path ? `../${movimento.file_path}` : '../assets/img/no-image.png';
+                            const createdAtFormatted = new Date(movimento.created_at).toLocaleString('pt-BR');
+                            const vacaId = movimento.fk_vacancie ?? '—';
+                            const estado = movimento.state ?? '—';
+
+                            // Só adiciona a <tr> se a data/hora for diferente da última registrada
+                            if (createdAtFormatted !== ultimaDataFormatada) {
+                                tableHtml += `
+                                        <tr>
+                                            <td>${vacaId}</td>
+                                            <td>${placaText}</td>
+                                            <td>${createdAtFormatted}</td>
+                                            <td>
+                                                <img src="${imageUrl}" class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;">
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-${estado === 'entrada' ? 'success' : (estado === 'saida' ? 'warning' : 'secondary')}">
+                                                    ${estado}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                         `;
+
+                                // Atualiza a última data registrada
+                                ultimaDataFormatada = createdAtFormatted;
+                            }
+                        });
+
+                    });
 
 
 
