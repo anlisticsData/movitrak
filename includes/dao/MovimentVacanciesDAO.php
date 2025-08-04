@@ -490,7 +490,7 @@ public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
     }
 
 
-public function getMovimentosPorVaga($vagaId, $limit = 1000, $offset = 0)
+public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
 {
     $sql = "
         SELECT 
@@ -505,13 +505,13 @@ public function getMovimentosPorVaga($vagaId, $limit = 1000, $offset = 0)
         ) latest ON m.id = latest.latest_id
         LEFT JOIN cameras c ON m.fk_camera = c.id
         ORDER BY m.created_at DESC
-        LIMIT :offset,:limit
+        LIMIT  :limit 
     ";
 
     $stmt = $this->pdo->prepare($sql);
     $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->bindValue(':limit', $offset.",".$limit, PDO::PARAM_STR);
+  
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
