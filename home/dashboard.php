@@ -302,7 +302,7 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
                                         <th>Placa</th>
                                         <th>Registrado em</th>
                                         <th>Imagem</th>
-                                        <th>Ações</th>
+                                   
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -317,15 +317,15 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
 
                         // Cabeçalho para o grupo da placa
                         tableHtml += `
-        <tr class="table-primary">
-            <td colspan="5">
-                <strong>Placa:</strong> ${placaText} |
-                <strong>Dia:</strong> ${dia} |
-                <strong>Primeira Hora:</strong> ${primeiraHora} |
-                <strong>Última Hora:</strong> ${ultimaHora}
-            </td>
-        </tr>
-    `;
+                                <tr class="table-primary">
+                                    <td colspan="5">
+                                        <strong>Placa:</strong> ${placaText} |
+                                        <strong>Dia:</strong> ${dia} |
+                                        <strong>Primeira Hora:</strong> ${primeiraHora} |
+                                        <strong>Última Hora:</strong> ${ultimaHora}
+                                    </td>
+                                </tr>
+                            `;
 
                         // Lista os movimentos dessa placa
                         let ultimaDataFormatada = null;
@@ -348,11 +348,7 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
                                         <td>
                                             <img src="${imageUrl}" class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;">
                                         </td>
-                                        <td>
-                                            <span class="badge badge-${estado === 'entrada' ? 'success' : (estado === 'saida' ? 'warning' : 'secondary')}">
-                                                ${estado}
-                                            </span>
-                                        </td>
+                                        
                                     </tr>
                                 `;
 
