@@ -305,7 +305,7 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
                                 </thead>
                                 <tbody>
                     `;
-                    response.data.forEach(function(movimento) {
+                    response.data.movimetos.forEach(function(movimento) {
                         const imageUrl = movimento.file_path ? `../${movimento.file_path}` : '../assets/img/no-image.png';
                         const placaText = movimento.placa ? movimento.placa : 'N/A';
                         const createdAtFormatted = new Date(movimento.created_at).toLocaleString('pt-BR');
