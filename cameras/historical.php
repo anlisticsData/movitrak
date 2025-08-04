@@ -26,6 +26,11 @@ $totalMovimentos = $movDAO->countMovimentosPorVaga($vagaId);
 $totalPages = ceil($totalMovimentos / $limit);
 
 $movimentos = $movDAO->getMovimentosPorVaga($vagaId, $limit, $offset);
+
+
+
+
+
 ?>
 
 <!DOCTYPE html>
@@ -56,7 +61,7 @@ $movimentos = $movDAO->getMovimentosPorVaga($vagaId, $limit, $offset);
                 <?php foreach ($movimentos as $mov): ?>
                     <tr>
                         <td><?= converterParaSaoPaulo(date('d/m/Y H:i', strtotime($mov['created_at']))) ?></td>
-                        <td><?= htmlspecialchars($mov['placa'] ?? '---') ?></td>
+                        <td><?= htmlspecialchars(extrairPlacaMercosul($mov['placa']) ?? '---') ?></td>
                         <td>
                             <?= $mov['state'] == 1 
                                 ? '<span class="badge badge-danger">Ocupada</span>' 
