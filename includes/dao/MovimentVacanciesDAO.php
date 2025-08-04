@@ -510,7 +510,7 @@ public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
 
     $stmt = $this->pdo->prepare($sql);
     $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
-    $stmt->bindValue(':limit', $offset.",".$limit, PDO::PARAM_STR);
+    $stmt->bindValue(':limit', $offset.",".$limit);
   
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
