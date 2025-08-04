@@ -28,10 +28,9 @@ class MovimentVacanciesDAO
             m.created_at
         FROM moviment_vacancies m
         INNER JOIN cameras c ON m.fk_camera = c.id
-        WHERE m.placa = :placa
+        WHERE m.placa like '%:placa%'
           AND c.fk_user = :user_id
-          AND DATE(m.created_at) = CURDATE()  -- Filtra os movimentos de hoje
-        ORDER BY m.created_at DESC
+          ORDER BY m.created_at DESC
     ";
 
     $stmt = $this->pdo->prepare($sql);
