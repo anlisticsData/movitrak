@@ -330,34 +330,36 @@ $dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
                         // Lista os movimentos dessa placa
                         let ultimaDataFormatada = null;
 
+                      let ultimaData = null;
+
                         placaInfo.movimentos.forEach(function(movimento) {
                             const imageUrl = movimento.file_path ? `../${movimento.file_path}` : '../assets/img/no-image.png';
-                            const createdAtFormatted = new Date(movimento.created_at).toLocaleString('pt-BR');
+                            const dataFormatada = new Date(movimento.created_at).toLocaleDateString('pt-BR'); // só a data
                             const vacaId = movimento.fk_vacancie ?? '—';
                             const estado = movimento.state ?? '—';
 
-                            // Só adiciona a <tr> se a data/hora for diferente da última registrada
-                            if (createdAtFormatted !== ultimaDataFormatada) {
+                            // Adiciona <tr> apenas se for uma nova data
+                            if (dataFormatada !== ultimaData) {
                                 tableHtml += `
-                                        <tr>
-                                            <td>${vacaId}</td>
-                                            <td>${placaText}</td>
-                                            <td>${createdAtFormatted}</td>
-                                            <td>
-                                                <img src="${imageUrl}" class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;">
-                                            </td>
-                                            <td>
-                                                <span class="badge badge-${estado === 'entrada' ? 'success' : (estado === 'saida' ? 'warning' : 'secondary')}">
-                                                    ${estado}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                         `;
+                                    <tr>
+                                        <td>${vacaId}</td>
+                                        <td>${placaText}</td>
+                                        <td>${dataFormatada}</td>
+                                        <td>
+                                            <img src="${imageUrl}" class="table-img-thumbnail visualizar-imagem" data-imagem="${imageUrl}" alt="Imagem" style="max-width: 80px; max-height: 80px;">
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-${estado === 'entrada' ? 'success' : (estado === 'saida' ? 'warning' : 'secondary')}">
+                                                ${estado}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `;
 
-                                // Atualiza a última data registrada
-                                ultimaDataFormatada = createdAtFormatted;
+                                ultimaData = dataFormatada;
                             }
                         });
+
 
                     });
 
