@@ -14,12 +14,12 @@ class MovimentVacanciesDAO
 
 
 
-   public function getTodosMovimentosDoDiaAtual($placa, $userId)
-{
+    public function getTodosMovimentosDoDiaAtual($placa, $userId)
+    {
 
 
-    
-    $sql = "
+
+        $sql = "
         SELECT
             DATE(m.created_at) AS dia,
             m.id AS movimento_id,
@@ -36,13 +36,13 @@ class MovimentVacanciesDAO
         ORDER BY m.created_at DESC
     ";
 
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->bindValue(':placa',$placa.'%', PDO::PARAM_STR);
-    $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-    $stmt->execute();
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':placa', $placa . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
 
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
 
 
@@ -73,9 +73,9 @@ class MovimentVacanciesDAO
 
 
 
-public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
-{
-    $sql = "
+    public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
+    {
+        $sql = "
         SELECT 
             m.id, m.fk_camera, m.fk_vacancie, m.created_at, m.state, 
             m.file_path, m.placa,  -- <-- Aqui incluímos a placa
@@ -89,13 +89,13 @@ public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
         ORDER BY m.created_at DESC
     ";
 
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->bindValue(':dias', $dias, PDO::PARAM_INT);
-    $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-    $stmt->execute();
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':dias', $dias, PDO::PARAM_INT);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
 
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
 
 
@@ -490,37 +490,37 @@ public function getMovimentosUltimosDiasPorUsuario($userId, $dias = 7)
     }
 
 
-public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
-{
-    $sql = "
+    public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
+    {
+        $sql = "
       SELECT 
-    m.id, m.created_at, m.state, m.file_path, m.placa,
-    c.name AS camera_name
-FROM moviment_vacancies m
-INNER JOIN (
-    SELECT MAX(id) AS latest_id
-    FROM moviment_vacancies
-    WHERE fk_vacancie = :vaga_id
-    GROUP BY placa, DATE(created_at)
-) latest ON m.id = latest.latest_id
-LEFT JOIN cameras c ON m.fk_camera = c.id
-ORDER BY m.created_at DESC
+                m.id, m.created_at, m.state, m.file_path, m.placa,
+                c.name AS camera_name
+            FROM moviment_vacancies m
+            INNER JOIN (
+                SELECT MAX(id) AS latest_id
+                FROM moviment_vacancies
+                WHERE fk_vacancie = :vaga_id
+                GROUP BY placa, DATE(created_at)
+            ) latest ON m.id = latest.latest_id
+            LEFT JOIN cameras c ON m.fk_camera = c.id
+            ORDER BY m.created_at DESC
 
 
          
     ";
 
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
-    
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
 
-public function countMovimentosPorVaga($vagaId)
-{
-    $sql = "
+    public function countMovimentosPorVaga($vagaId)
+    {
+        $sql = "
         SELECT COUNT(*) FROM (
             SELECT DATE(created_at) AS data_unica
             FROM moviment_vacancies
@@ -529,10 +529,9 @@ public function countMovimentosPorVaga($vagaId)
         ) AS dias
     ";
 
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
-    $stmt->execute();
-    return (int)$stmt->fetchColumn();
-}
-
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
 }
