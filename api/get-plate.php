@@ -45,17 +45,16 @@ try {
                 ];
             }
 
-            // Atualiza a menor hora
+            // Atualiza menor e maior hora
             if ($hora < $placasAgrupadas[$placa]['primeira_hora']) {
                 $placasAgrupadas[$placa]['primeira_hora'] = $hora;
             }
 
-            // Atualiza a maior hora
             if ($hora > $placasAgrupadas[$placa]['ultima_hora']) {
                 $placasAgrupadas[$placa]['ultima_hora'] = $hora;
             }
 
-            // Adiciona o movimento
+            // Adiciona movimento (temporariamente, sem as horas ainda)
             $placasAgrupadas[$placa]['movimentos'][] = [
                 "movimento_id" => $row['movimento_id'],
                 "fk_camera" => $row['fk_camera'],
@@ -63,10 +62,19 @@ try {
                 "state" => $row['state'],
                 "file_path" => $row['file_path'],
                 "created_at" => $row['created_at'],
+                "hora" => $hora // armazenar hora separada para fácil visualização
             ];
         }
 
-        // Reorganiza o array para retorno (sem chaves associativas)
+        // Agora adicionamos a menor e maior hora dentro de cada movimento
+        foreach ($placasAgrupadas as &$grupo) {
+            foreach ($grupo['movimentos'] as &$mov) {
+                $mov['primeira_hora'] = $grupo['primeira_hora'];
+                $mov['ultima_hora'] = $grupo['ultima_hora'];
+            }
+        }
+
+        // Reorganiza para retorno sem chaves associativas
         $lancamentos = array_values($placasAgrupadas);
 
         echo json_encode([
