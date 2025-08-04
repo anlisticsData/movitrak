@@ -11,22 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 
 
 
-/**
- * Extrai uma placa no padrão Mercosul (ex: ABC1D23) de uma string.
- *
- * @param string $string A string de onde extrair a placa.
- * @return string A placa extraída ou "desconhecida" se não for encontrada.
- */
-function extrairPlacaMercosul(string $string): string
-{
-    if (preg_match('/[A-Z]{3}[0-9][A-Z0-9][0-9]{2}/', strtoupper($string), $matches)) {
-        return $matches[0];
-    }
-
-    return "desconhecida";
-}
-
-
+ 
 
 
 $userId = $_SESSION['user_id'];
