@@ -58,7 +58,7 @@ $movimentos = $movDAO->getMovimentosPorVaga($vagaId, $limit, $offset);
             <tbody>
                 <?php foreach ($movimentos as $mov): ?>
                     <tr>
-                        <td><?= converterParaSaoPaulo(date('d/m/Y H:i', strtotime($mov['created_at']))) ?></td>
+                        <td><?= (date('d/m/Y H:i', strtotime($mov['created_at']))) ?></td>
                         <td><?= htmlspecialchars(extrairPlacaMercosul($mov['placa']) ?? '---') ?></td>
                         <td>
                             <?= $mov['state'] == 1 
