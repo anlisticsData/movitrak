@@ -505,13 +505,12 @@ public function getMovimentosPorVaga($vagaId, $limit = 10, $offset = 0)
         ) latest ON m.id = latest.latest_id
         LEFT JOIN cameras c ON m.fk_camera = c.id
         ORDER BY m.created_at DESC
-        LIMIT  :limit 
+         
     ";
 
     $stmt = $this->pdo->prepare($sql);
     $stmt->bindValue(':vaga_id', $vagaId, PDO::PARAM_INT);
-    $stmt->bindValue(':limit', $offset.",".$limit);
-  
+    
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
