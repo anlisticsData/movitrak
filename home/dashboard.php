@@ -9,100 +9,70 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-
-
- 
-
-
 $userId = $_SESSION['user_id'];
-
 $movimentVacanciesDAO = new MovimentVacanciesDAO($pdo);
 
-// Função para validar placa brasileira (modelo antigo ou Mercosul)
-function placaValida($placa)
-{
-    $placa = strtoupper(preg_replace('/[^A-Z0-9]/', '', $placa)); // remove caracteres inválidos
+// Função para extrair placa válida (modelo antigo ou Mercosul)
+function extrairPlaca(string $placa): string {
+    $placa = strtoupper(preg_replace('/[^A-Z0-9]/', '', $placa));
 
     // Padrão antigo: ABC1234
-    if (preg_match('/^[A-Z]{3}[0-9]{4}$/', $placa)) {
-        return true;
-    }
+    if (preg_match('/^[A-Z]{3}[0-9]{4}$/', $placa)) return $placa;
 
     // Padrão Mercosul: ABC1D23
-    if (preg_match('/^[A-Z]{3}[0-9][A-Z][0-9]{2}$/', $placa)) {
-        return true;
-    }
+    if (preg_match('/^[A-Z]{3}[0-9][A-Z][0-9]{2}$/', $placa)) return $placa;
 
-    // Placas especiais (7 ou 8 caracteres alfanuméricos)
-    if (preg_match('/^[A-Z0-9]{7,8}$/', $placa)) {
-        return true;
-    }
-
-    return false;
+    return "OCR_FAILED";
 }
-
 
 // Buscando dados
 $movimentos_ultimos_dias = $movimentVacanciesDAO->getMovimentosUltimosDiasPorUsuario($userId);
 $movimentos_recentes = $movimentVacanciesDAO->getMovimentosRecentesPorUsuario($userId);
 
-// Processando dados para o gráfico com filtro de 1h e placas válidas
-$placasPorDia = []; // Exemplo: [ 'Mon' => ['ABC1234', 'DEF5678'] ]
-$contagemPorDia = [];
+// Agrupando placas únicas por data completa (YYYY-MM-DD)
+$placasPorDia = [];       // ['2025-08-04' => ['ABC1234']]
+$contagemPorDia = [];     // ['2025-08-04' => 3]
 
-
-
-//print_r(["<pre>",$movimento]);
 foreach ($movimentos_ultimos_dias as $movimento) {
-    $placa =extrairPlacaMercosul(strtoupper($movimento['placa'] ?? ''));
+    $placa = extrairPlaca($movimento['placa'] ?? '');
     $createdAt = strtotime($movimento['created_at']);
-    $state =  $movimento['state'];
+    $state = $movimento['state'];
 
-    //if (!placaValida($placa)) continue;
+    $dataCompleta = date('Y-m-d', $createdAt);
+    $diaSemana = date('D', $createdAt); // Para tradução depois
 
-    $dia = date('D', $createdAt);
-
-    if (!isset($placasPorDia[$dia])) {
-        $placasPorDia[$dia] = [];
+    if (!isset($placasPorDia[$dataCompleta])) {
+        $placasPorDia[$dataCompleta] = [];
     }
 
-    // Se essa placa já foi contada nesse dia, ignore
-    if (in_array($placa, $placasPorDia[$dia])) continue;
+    if (!in_array($placa, $placasPorDia[$dataCompleta]) && $placa !== "OCR_FAILED" && $state) {
+        $placasPorDia[$dataCompleta][] = $placa;
 
-
-    if ($placa != "OCR_FAILED"  && $state) {
-        $placasPorDia[$dia][] = $placa;
-
-
-        if (!isset($contagemPorDia[$dia])) {
-            $contagemPorDia[$dia] = 1;
+        if (!isset($contagemPorDia[$dataCompleta])) {
+            $contagemPorDia[$dataCompleta] = 1;
         } else {
-            $contagemPorDia[$dia]++;
+            $contagemPorDia[$dataCompleta]++;
         }
     }
 }
 
-// Organizar os dados para o gráfico
-$movimentos_dias = array_keys($contagemPorDia);
-$movimentos_contagem = array_values($contagemPorDia);
+// Preparando dados para o gráfico
+$dias_da_semana = [
+    'Sun' => 'Domingo', 'Mon' => 'Segunda', 'Tue' => 'Terça',
+    'Wed' => 'Quarta', 'Thu' => 'Quinta', 'Fri' => 'Sexta', 'Sat' => 'Sábado'
+];
 
+$movimentos_dias = [];
+$dias_em_portugues = [];
+$movimentos_contagem = [];
 
-
-
-
-// Traduzindo os dias da semana para português
-$dias_da_semana = ['Sun' => 'Domingo', 'Mon' => 'Segunda', 'Tue' => 'Terça', 'Wed' => 'Quarta', 'Thu' => 'Quinta', 'Fri' => 'Sexta', 'Sat' => 'Sábado'];
-$dias_em_portugues = array_map(function ($dia) use ($dias_da_semana) {
-    return $dias_da_semana[$dia];
-}, $movimentos_dias);
-
-
-
-
-
-
+foreach ($contagemPorDia as $data => $quantidade) {
+    $diaSemana = date('D', strtotime($data));
+    $movimentos_dias[] = $data;
+    $dias_em_portugues[] = $dias_da_semana[$diaSemana] . " ({$data})";
+    $movimentos_contagem[] = $quantidade;
+}
 ?>
-
 
 <!DOCTYPE html>
 <html lang="pt-br">
