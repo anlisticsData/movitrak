@@ -23,6 +23,26 @@ function converterParaSaoPaulo(string $dataUTC): string {
 }
  
 
+function extrairPlaca(string $string): string
+{
+    $string = strtoupper($string);
+
+    // Modelo Mercosul: ABC1D23
+    if (preg_match('/[A-Z]{3}[0-9][A-Z][0-9]{2}/', $string, $matches)) {
+        return $matches[0];
+    }
+
+    // Modelo antigo: ABC1234
+    if (preg_match('/[A-Z]{3}[0-9]{4}/', $string, $matches)) {
+        return $matches[0];
+    }
+
+    return "desconhecida";
+}
+
+
+
+
 
 
 ?>
