@@ -33,40 +33,42 @@ try {
         foreach ($lancamentosData as $row) {
             $placa = extrairPlacaMercosul($row['placa']);
             $hora = date('H:i:s', strtotime($row['created_at']));
+            $dia = $row['dia'];
+            $chave = $placa . '|' . $dia; // chave única por placa e dia
 
-            // Se ainda não existe, inicia o grupo
-            if (!isset($placasAgrupadas[$placa])) {
-                $placasAgrupadas[$placa] = [
+            // Inicia grupo se não existir
+            if (!isset($placasAgrupadas[$chave])) {
+                $placasAgrupadas[$chave] = [
                     "placa" => $placa,
-                    "dia" => $row['dia'],
+                    "dia" => $dia,
                     "primeira_hora" => $hora,
                     "ultima_hora" => $hora,
                     "movimentos" => [],
                 ];
             }
 
-            // Atualiza menor e maior hora
-            if ($hora < $placasAgrupadas[$placa]['primeira_hora']) {
-                $placasAgrupadas[$placa]['primeira_hora'] = $hora;
+            // Atualiza horas extremas
+            if ($hora < $placasAgrupadas[$chave]['primeira_hora']) {
+                $placasAgrupadas[$chave]['primeira_hora'] = $hora;
             }
 
-            if ($hora > $placasAgrupadas[$placa]['ultima_hora']) {
-                $placasAgrupadas[$placa]['ultima_hora'] = $hora;
+            if ($hora > $placasAgrupadas[$chave]['ultima_hora']) {
+                $placasAgrupadas[$chave]['ultima_hora'] = $hora;
             }
 
-            // Adiciona movimento (temporariamente, sem as horas ainda)
-            $placasAgrupadas[$placa]['movimentos'][] = [
+            // Adiciona movimento
+            $placasAgrupadas[$chave]['movimentos'][] = [
                 "movimento_id" => $row['movimento_id'],
                 "fk_camera" => $row['fk_camera'],
                 "fk_vacancie" => $row['fk_vacancie'],
                 "state" => $row['state'],
                 "file_path" => $row['file_path'],
                 "created_at" => $row['created_at'],
-                "hora" => $hora // armazenar hora separada para fácil visualização
+                "hora" => $hora
             ];
         }
 
-        // Agora adicionamos a menor e maior hora dentro de cada movimento
+        // Adiciona horas também a cada movimento
         foreach ($placasAgrupadas as &$grupo) {
             foreach ($grupo['movimentos'] as &$mov) {
                 $mov['primeira_hora'] = $grupo['primeira_hora'];
@@ -74,7 +76,7 @@ try {
             }
         }
 
-        // Reorganiza para retorno sem chaves associativas
+        // Converte para array sequencial para retornar
         $lancamentos = array_values($placasAgrupadas);
 
         echo json_encode([
